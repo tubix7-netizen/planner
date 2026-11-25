@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
 <style>
-/* Layout: single-column mobile run sheet — event switcher, D-day hero, focus list, bottom tab bar */
+/* Layout: phone app shell — sticky app bar (event + area chips), scrolling screen, 4-tab bar */
 :root {
   --bg: #F3F4F0;
   --surface: #FFFFFF;
@@ -31,9 +31,9 @@
   --late: #D2452F;
   --late-bg: #FBE9E5;
   --chip: #ECEEE8;
-  --p1: #3B6FD8; --p2: #2E8F63; --p3: #D46A22; --p4: #8457CB; --p5: #C9467B; --p6: #1B8794; --p7: #A07A0C; --p8: #5A6878;  /* area + period colors, white text on all */
+  --p1: #3B6FD8; --p2: #2E8F63; --p3: #D46A22; --p4: #8457CB; --p5: #C9467B; --p6: #1B8794; --p7: #A07A0C; --p8: #5A6878;  /* area + period colors */
   --shadow: 0 1px 2px rgba(24,34,45,.06), 0 6px 20px rgba(24,34,45,.06);
-  --desk: #D9DDD4;          /* backdrop behind the phone frame on wide screens */
+  --desk: #D9DDD4;
   --frame: #0E1318;
   --f-body: "IBM Plex Sans KR", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   --f-num: "Space Grotesk", "IBM Plex Sans KR", ui-monospace, sans-serif;
@@ -52,25 +52,37 @@
 html, body { height: 100%; }
 body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; -webkit-tap-highlight-color: transparent; overflow: hidden; }
 button, input, select, textarea { font: inherit; color: inherit; }
-button { cursor: pointer; }
+button { cursor: pointer; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
 :focus-visible { outline: 2px solid var(--doing); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) { button:active:not([disabled]) { transform: scale(.97); } .day:active, .pbar:active { transform: none; } }
 
-.wrap { margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 28px; display: grid; gap: 18px; }
+/* App shell */
+.phone { position: relative; height: 100%; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
+.screen { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 28px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+/* every grid/flex child may shrink below its content, so long rows never widen the screen */
+.wrap > *, .appbar > *, .list > *, .card > *, .sheet > * { min-width: 0; }
+@media (min-width: 620px) and (min-height: 600px) {
+  body { background: var(--desk); }
+  .phone { height: min(900px, calc(100% - 48px)); margin-top: 24px; border: 10px solid var(--frame); border-radius: 44px; box-shadow: 0 30px 80px rgba(0,0,0,.28); }
+}
 
-.notice { font-size: 13px; color: var(--muted); background: var(--chip); border-radius: 10px; padding: 10px 12px; margin: 0; }
-
-/* Event switcher */
+.appbar { position: sticky; top: 0; z-index: 10; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); background: color-mix(in srgb, var(--bg) 90%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
 .evbar { display: flex; align-items: center; gap: 8px; }
 .ev-switch { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; column-gap: 6px; align-items: center; border: 0; background: none; padding: 2px 0; text-align: left; }
 .ev-switch .lbl { flex-basis: 100%; font-size: 11px; color: var(--muted); line-height: 1.2; }
-.ev-switch .nm { font-size: 21px; font-weight: 700; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; letter-spacing: -.01em; }
+.ev-switch .nm { flex: 0 1 auto; font-size: 21px; font-weight: 700; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; letter-spacing: -.01em; }
 .ev-switch svg { width: 18px; height: 18px; flex: none; color: var(--muted); }
-.btn.icon { flex: none; width: 42px; height: 42px; padding: 0; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.btn.icon svg { width: 20px; height: 20px; }
 .ev-count { font-family: var(--f-num); font-size: 11px; background: var(--chip); color: var(--muted); border-radius: 99px; padding: 0 7px; flex: none; }
+.area-legend { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 0; }
+.area-legend::-webkit-scrollbar { display: none; }
+.area-chip { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 5px 12px 5px 10px; border-radius: 99px; background: color-mix(in srgb, var(--ac) 15%, var(--surface)); color: var(--ink); border: 1px solid color-mix(in srgb, var(--ac) 35%, transparent); white-space: nowrap; }
+.area-chip i { width: 10px; height: 10px; border-radius: 50%; background: var(--ac); }
+
+.notice { font-size: 13px; color: var(--muted); background: var(--chip); border-radius: 10px; padding: 10px 12px; margin: 12px 0 0; }
 
 /* Hero */
-.hero { background: var(--ink); color: var(--bg); border-radius: 18px; padding: 18px 18px 16px; display: grid; gap: 10px; position: relative; overflow: hidden; border: 0; text-align: left; width: 100%; }
+.hero { margin-top: 14px; background: var(--ink); color: var(--bg); border-radius: 18px; padding: 18px 18px 16px; display: grid; gap: 10px; position: relative; overflow: hidden; border: 0; text-align: left; width: 100%; }
 .hero::after { content: ""; position: absolute; right: -24px; top: 18px; width: 120px; height: 26px; background: var(--tape); transform: rotate(-8deg); opacity: .95; }
 .hero .eyebrow { font-size: 12px; letter-spacing: .08em; opacity: .7; }
 .hero h1 { margin: 0; font-size: 21px; line-height: 1.3; text-wrap: balance; padding-right: 70px; }
@@ -78,78 +90,77 @@ button { cursor: pointer; }
 .dday { font-family: var(--f-num); font-weight: 700; font-size: 56px; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .hero .row { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .hero .edit { font-size: 12px; opacity: .7; text-decoration: underline; text-underline-offset: 3px; }
+.hero .ptags { position: relative; z-index: 1; }
 
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
-.sec-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; font-size: 15px; font-weight: 700; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.sec-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 14px 0 0; font-size: 16px; font-weight: 700; flex-wrap: wrap; }
 .sec-title small { font-weight: 500; color: var(--muted); font-size: 12px; }
+.sec-actions { display: flex; gap: 6px; }
 
-/* Task list */
-.list { display: grid; gap: 8px; }
-.task { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px 10px 10px; }
+/* Task rows */
+.list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.task { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-left: 8px solid var(--ac, var(--line)); border-radius: 12px; padding: 12px 12px 12px 10px; }
 .card .task { background: var(--bg); }
 .task.is-late { border-color: var(--late); border-left-color: var(--ac, var(--late)); background: linear-gradient(90deg, var(--late-bg), var(--surface) 60%); }
 .task.is-done .t-title { color: var(--muted); text-decoration: line-through; }
-.st { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); display: grid; place-items: center; padding: 0; }
-.st svg { width: 16px; height: 16px; }
+.st { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); display: grid; place-items: center; padding: 0; }
+.st svg { width: 18px; height: 18px; }
 .st.doing { border-color: var(--doing); }
-.st.doing::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: conic-gradient(var(--doing) 0 50%, transparent 0); }
+.st.doing::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: conic-gradient(var(--doing) 0 50%, transparent 0); }
 .st.done { border-color: var(--done); background: var(--done); color: #fff; }
-.t-body { min-width: 0; background: none; border: 0; padding: 2px 0 0; text-align: left; display: grid; gap: 4px; }
-.t-title { font-weight: 600; line-height: 1.35; word-break: keep-all; overflow-wrap: anywhere; }
-.t-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 12px; color: var(--muted); align-items: center; }
-.t-meta .d { font-family: var(--f-num); font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
-.pill { font-size: 11px; padding: 1px 7px; border-radius: 99px; background: var(--chip); color: var(--muted); white-space: nowrap; }
-.pill.late { background: var(--late); color: #fff; }
+.t-body { min-width: 0; background: none; border: 0; padding: 1px 0 0; text-align: left; display: grid; gap: 4px; }
+.t-title { font-size: 17px; font-weight: 600; line-height: 1.35; word-break: keep-all; overflow-wrap: anywhere; }
+.t-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 13px; color: var(--muted); align-items: center; }
+.t-meta .left { font-weight: 700; color: var(--ink); }
+.t-meta .left.soon { color: var(--p3); }
+.t-meta .left.late { color: var(--late); }
+.pill { font-size: 11.5px; padding: 1px 8px; border-radius: 99px; background: var(--chip); color: var(--muted); white-space: nowrap; }
+.pill.area { background: color-mix(in srgb, var(--ac) 16%, transparent); color: var(--ac); font-weight: 700; }
 .pill.doing { background: var(--doing); color: #fff; }
-.t-note { font-size: 12px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
-.empty { color: var(--muted); font-size: 13px; padding: 6px 2px; margin: 0; }
+.pill.paid { background: var(--done); color: #fff; }
+.t-note { font-size: 13px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.empty { color: var(--muted); font-size: 14px; padding: 6px 2px; margin: 0; }
 .starter { display: grid; gap: 12px; justify-items: start; }
-.starter h2 { margin: 0; font-size: 17px; }
+.starter h2 { margin: 0; font-size: 18px; }
 .starter p { margin: 0; color: var(--muted); font-size: 14px; }
-
-/* Phase timeline */
-.phase { display: grid; gap: 8px; position: relative; padding-left: 18px; }
-.phase::before { content: ""; position: absolute; left: 4px; top: 8px; bottom: -18px; width: 2px; background: var(--line); }
-.phase:last-child::before { bottom: 0; }
-.phase-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; position: relative; }
-.phase-head::before { content: ""; position: absolute; left: -18px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid var(--muted); }
-.phase.now .phase-head::before { background: var(--tape); border-color: var(--tape-ink); }
-.phase-head h3 { margin: 0; font-size: 16px; }
-.phase-head .range { font-size: 12px; color: var(--muted); font-family: var(--f-num); }
-.phase-head .now-tag { font-size: 11px; font-weight: 700; background: var(--tape); color: var(--tape-ink); padding: 1px 8px; border-radius: 4px; }
+.add-line { border: 1px dashed var(--line); background: none; border-radius: 12px; padding: 11px; color: var(--muted); font-weight: 600; font-size: 15px; }
 
 .seg { display: flex; gap: 4px; background: var(--chip); padding: 3px; border-radius: 10px; }
-.seg button { flex: 1; border: 0; background: none; padding: 6px 0; border-radius: 8px; font-size: 13px; color: var(--muted); }
-.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: var(--shadow); }
+.seg button { flex: 1; min-width: 0; border: 0; background: none; padding: 7px 0; border-radius: 8px; font-size: 14px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 700; box-shadow: var(--shadow); }
 
-/* Area cards */
-.area-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.area-name { border: 0; background: none; padding: 0; font-size: 16px; font-weight: 700; text-align: left; display: flex; align-items: center; gap: 6px; min-width: 0; }
-.area-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.area-name svg { width: 14px; height: 14px; color: var(--muted); flex: none; }
-.area-sub { font-size: 12px; color: var(--muted); }
-.add-line { border: 1px dashed var(--line); background: none; border-radius: 12px; padding: 10px; color: var(--muted); font-weight: 600; font-size: 14px; }
+/* Area folders */
+.area-card { border-top: 6px solid var(--ac); background: linear-gradient(180deg, color-mix(in srgb, var(--ac) 9%, var(--surface)), var(--surface) 70px); scroll-margin-top: 140px; padding: 6px 10px 10px; gap: 8px; }
+.area-card.closed { padding-bottom: 6px; }
+.area-head { display: flex; align-items: center; gap: 4px; }
+.area-toggle { flex: 1; min-width: 0; display: grid; grid-template-columns: 22px 12px minmax(0, 1fr); column-gap: 8px; align-items: center; border: 0; background: none; padding: 10px 4px; text-align: left; }
+.area-toggle svg { width: 22px; height: 22px; color: var(--muted); transition: transform .18s; }
+.area-card.closed .area-toggle svg { transform: rotate(-90deg); }
+.area-toggle .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ac); }
+.area-toggle .nm { font-size: 18px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.area-toggle .sub { grid-column: 3; font-size: 12.5px; color: var(--muted); }
+.icon-btn { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: none; color: var(--muted); display: grid; place-items: center; }
+.icon-btn svg { width: 18px; height: 18px; }
 
-/* Bottom nav */
-.nav { flex: none; z-index: 20; background: var(--surface); border-top: 1px solid var(--line); padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px)); }
-.nav-in { display: grid; grid-template-columns: repeat(3, 1fr); }
-.nav button { border: 0; background: none; padding: 8px 0 10px; display: grid; justify-items: center; gap: 3px; font-size: 11.5px; color: var(--muted); }
-.nav button svg { width: 56px; height: 30px; padding: 4px 17px; border-radius: 99px; transition: background .15s; }
+/* Bottom tab bar */
+.nav { flex: none; z-index: 20; background: var(--surface); border-top: 1px solid var(--line); padding-left: max(4px, env(safe-area-inset-left, 0px)); padding-right: max(4px, env(safe-area-inset-right, 0px)); }
+.nav-in { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.nav button { border: 0; background: none; padding: 8px 0 10px; display: grid; justify-items: center; gap: 3px; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+.nav button svg { width: 54px; height: 30px; padding: 4px 16px; border-radius: 99px; transition: background .15s; }
 .nav button[aria-current="page"] { color: var(--ink); font-weight: 700; }
 .nav button[aria-current="page"] svg { background: color-mix(in srgb, var(--tape) 70%, transparent); color: var(--tape-ink); }
 
 /* Sheet */
 .backdrop { position: absolute; inset: 0; z-index: 40; background: rgba(10,14,18,.45); display: flex; align-items: flex-end; justify-content: center; }
-.sheet { width: 100%; max-height: 88%; overflow-y: auto; background: var(--surface); border-radius: 18px 18px 0 0; padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 14px; }
+.sheet { width: 100%; max-height: 88%; overflow-y: auto; background: var(--surface); border-radius: 18px 18px 0 0; padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .grip { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 4px auto 0; }
 .sheet h2 { margin: 0; font-size: 18px; }
-.field { display: grid; gap: 6px; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
 .field label, .field .lab { font-size: 13px; font-weight: 600; color: var(--muted); }
-.field input, .field select, .field textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 11px 12px; font-size: 16px; }
+.field input, .field select, .field textarea { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 11px 12px; font-size: 16px; }
 .field textarea { min-height: 72px; resize: vertical; }
 .hint { font-size: 12px; color: var(--muted); }
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.two > * { min-width: 0; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .actions { display: flex; gap: 8px; }
 .btn { flex: 1; border: 1px solid var(--line); background: var(--surface); padding: 13px; border-radius: 12px; font-weight: 600; }
 .btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
@@ -157,10 +168,12 @@ button { cursor: pointer; }
 .btn.danger { color: var(--late); border-color: var(--late); flex: none; padding-inline: 16px; }
 .btn.danger.armed { background: var(--late); color: #fff; }
 .btn.small { flex: none; padding: 7px 12px; font-size: 13px; border-radius: 10px; }
+.btn.icon { flex: none; width: 42px; height: 42px; padding: 0; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.icon svg { width: 20px; height: 20px; }
 .btn[disabled] { opacity: .5; }
 
-/* Event list rows */
-.ev-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 4px 6px 4px 4px; }
+/* Event list */
+.ev-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 4px 6px 4px 4px; }
 .ev-row.cur { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 .ev-main { border: 0; background: none; text-align: left; padding: 8px; display: grid; gap: 2px; min-width: 0; border-radius: 8px; }
 .ev-main .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -169,93 +182,65 @@ button { cursor: pointer; }
 .now-tag { font-size: 11px; font-weight: 700; background: var(--tape); color: var(--tape-ink); padding: 1px 8px; border-radius: 4px; }
 
 /* Calendar */
-.cal { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 6px 4px 4px; display: grid; }
+.cal { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 6px 3px 4px; display: grid; grid-template-columns: minmax(0, 1fr); }
 .dow { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); font-size: 11px; color: var(--muted); text-align: center; padding: 4px 0 6px; }
 .dow span:first-child { color: var(--late); }
 .week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 2px; padding: 2px 0 6px; border-top: 1px solid var(--line); }
-.day { grid-row: 1; border: 0; background: none; padding: 3px 0 2px; display: grid; justify-items: center; align-content: start; gap: 2px; border-radius: 8px; min-height: 46px; }
+.day { grid-row: 1; min-width: 0; border: 0; background: none; padding: 3px 0 2px; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: start; gap: 2px; border-radius: 8px; min-height: 76px; }
 .day .mon { font-size: 9px; color: var(--muted); line-height: 1; height: 9px; }
-.day .n { font-family: var(--f-num); font-size: 13px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; font-variant-numeric: tabular-nums; }
+.day .n { font-family: var(--f-num); font-size: 14px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; font-variant-numeric: tabular-nums; }
 .day.sun .n { color: var(--late); }
 .day.out { opacity: .35; }
 .day.today .n { box-shadow: inset 0 0 0 2px var(--ink); }
 .day.event .n { background: var(--tape); color: var(--tape-ink); font-weight: 700; }
 .day.sel { background: var(--chip); }
-.dots { display: flex; gap: 2px; height: 6px; align-items: center; }
-.dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--ac, var(--muted)); }
-.dots i.done { opacity: .35; } .dots i.late { box-shadow: 0 0 0 1.5px var(--surface), 0 0 0 3px var(--late); }
-.dots b { font-size: 8px; color: var(--muted); font-weight: 600; line-height: 1; }
-.pbar { height: 18px; border-radius: 5px; color: #fff; font-size: 10.5px; font-weight: 600; line-height: 18px; padding: 0 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 0; text-align: left; margin: 0 2px; min-width: 0; }
+.cchips { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; width: 100%; padding: 0 1px; }
+.cchip { display: block; min-width: 0; font-size: 9.5px; line-height: 14px; height: 14px; padding: 0 2px; border-radius: 3px; background: color-mix(in srgb, var(--ac) 24%, var(--surface)); border-left: 2px solid var(--ac); white-space: nowrap; overflow: hidden; text-align: left; color: var(--ink); }
+.cchip.done { opacity: .45; text-decoration: line-through; }
+.cchip.late { box-shadow: inset 0 0 0 1px var(--late); }
+.cmore { font-size: 9px; color: var(--muted); line-height: 1; }
+.pbar { min-width: 0; height: 18px; border-radius: 5px; color: #fff; font-size: 10.5px; font-weight: 600; line-height: 18px; padding: 0 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 0; text-align: left; margin: 0 2px; }
 .pbar.cl { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
 .pbar.cr { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
-.cal-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--muted); padding: 2px 4px; }
-.cal-legend span { display: inline-flex; align-items: center; gap: 4px; }
-.period-row { display: grid; grid-template-columns: 6px 1fr auto; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; text-align: left; width: 100%; }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--muted); padding: 4px 6px 2px; }
+.period-row { display: grid; grid-template-columns: 6px minmax(0, 1fr) auto; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; text-align: left; width: 100%; }
 .period-row .sw { width: 6px; align-self: stretch; border-radius: 3px; }
 .period-row .pn { font-weight: 600; }
-.period-row .pd { font-size: 12px; color: var(--muted); font-family: var(--f-num); }
+.period-row .pd { font-size: 12px; color: var(--muted); }
 .period-row .len { font-size: 12px; color: var(--muted); }
 .ptags { display: flex; flex-wrap: wrap; gap: 6px; }
 .ptag { font-size: 12px; font-weight: 600; color: #fff; padding: 2px 9px; border-radius: 99px; }
-.hero .ptags { position: relative; z-index: 1; }
+.wk-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.wk-head h3 { margin: 0; font-size: 16px; }
+.wk-head span { font-size: 12px; color: var(--muted); }
 .swatches { display: flex; gap: 12px; flex-wrap: wrap; padding: 4px 2px; }
 .swatches label { width: 32px; height: 32px; border-radius: 50%; position: relative; cursor: pointer; }
 .swatches input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
 .swatches label:has(input:checked) { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--ink); }
 .swatches label:has(input:focus-visible) { outline: 2px solid var(--doing); outline-offset: 4px; }
 
-/* Area colors */
-.task { border-left: 6px solid var(--ac, var(--line)); }
-.pill.area { background: color-mix(in srgb, var(--ac) 16%, transparent); color: var(--ac); font-weight: 700; }
-.topstrip { display: flex; align-items: center; gap: 8px; }
-.area-legend { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 0; }
-.area-legend::-webkit-scrollbar { display: none; }
-.area-chip { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 10px 4px 8px; border-radius: 99px; background: color-mix(in srgb, var(--ac) 15%, var(--surface)); color: var(--ink); border: 1px solid color-mix(in srgb, var(--ac) 35%, transparent); white-space: nowrap; }
-.area-chip i { width: 10px; height: 10px; border-radius: 50%; background: var(--ac); }
-.area-card { border-top: 6px solid var(--ac); background: linear-gradient(180deg, color-mix(in srgb, var(--ac) 9%, var(--surface)), var(--surface) 70px); scroll-margin-top: 12px; }
-.area-name .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ac); flex: none; }
+/* Budget */
+.sum { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-top: 14px; }
+.sum > * { background: var(--surface); padding: 12px 14px; display: grid; gap: 2px; min-width: 0; border: 0; text-align: left; }
+.sum span { font-size: 12px; color: var(--muted); }
+.sum b { font-family: var(--f-num); font-size: 19px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.sum .neg b { color: var(--late); }
+.sum .edit-total span { text-decoration: underline; text-underline-offset: 3px; }
+.b-group { border-top: 6px solid var(--ac); padding: 10px 12px 12px; gap: 8px; }
+.b-group-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.b-group-head h3 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.b-group-head h3 i { width: 10px; height: 10px; border-radius: 50%; background: var(--ac); flex: none; }
+.b-group-head small { font-size: 12px; color: var(--muted); font-family: var(--f-num); white-space: nowrap; }
+.b-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; text-align: left; width: 100%; }
+.b-row .nm { font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
+.b-row .amt { text-align: right; font-family: var(--f-num); font-variant-numeric: tabular-nums; display: grid; gap: 1px; }
+.b-row .amt b { font-size: 15px; }
+.b-row .amt small { font-size: 11px; color: var(--muted); }
+.b-row .amt b.over { color: var(--late); }
+.b-row .meta { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--muted); }
 
-/* View size toggle */
-.vtoggle { flex: none; display: inline-flex; gap: 2px; background: var(--chip); padding: 3px; border-radius: 10px; margin-left: auto; }
-.vtoggle button { border: 0; background: none; padding: 5px 10px; border-radius: 8px; font-size: 12px; color: var(--muted); }
-.vtoggle button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 700; box-shadow: var(--shadow); }
-body.v-big .task { padding: 14px 14px 14px 12px; grid-template-columns: 40px 1fr; gap: 12px; border-left-width: 9px; }
-body.v-big .st { width: 40px; height: 40px; }
-body.v-big .t-title { font-size: 18px; }
-body.v-big .t-meta { font-size: 13px; }
-body.v-big .t-meta .d { font-size: 15px; }
-body.v-big .t-extra, body.v-big .t-note { display: none; }
-body.v-big .area-name { font-size: 19px; }
-body.v-big .area-chip { font-size: 13px; padding: 6px 12px 6px 10px; }
-body.v-detail .task { padding: 8px 10px 8px 8px; }
-body.v-detail .t-title { font-size: 14px; }
-
-/* Calendar: big dots or detailed title chips */
-body.v-big .day { min-height: 56px; }
-body.v-big .day .n { font-size: 15px; width: 30px; height: 30px; }
-body.v-big .dots { height: 9px; gap: 3px; }
-body.v-big .dots i { width: 8px; height: 8px; }
-body.v-detail .day { min-height: 80px; }
-.cchips { display: grid; gap: 2px; width: 100%; padding: 0 1px; }
-.cchip { display: block; font-size: 9.5px; line-height: 14px; height: 14px; padding: 0 2px; border-radius: 3px; background: color-mix(in srgb, var(--ac) 24%, var(--surface)); border-left: 2px solid var(--ac); white-space: nowrap; overflow: hidden; text-align: left; color: var(--ink); }
-.cchip.done { opacity: .45; text-decoration: line-through; }
-.cchip.late { box-shadow: inset 0 0 0 1px var(--late); }
-.cmore { font-size: 9px; color: var(--muted); line-height: 1; }
-
-.toast { position: absolute; z-index: 50; left: 50%; transform: translateX(-50%); bottom: 84px; white-space: nowrap; background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-size: 13px; max-width: calc(100% - 32px); }
-
-/* App shell: a phone-sized screen; on wide screens it sits in a device frame */
-.phone { position: relative; height: 100%; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
-.screen { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
-.appbar { position: sticky; top: 0; z-index: 10; display: grid; gap: 10px; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); background: color-mix(in srgb, var(--bg) 90%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
-button { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
-@media (prefers-reduced-motion: no-preference) { button:active:not([disabled]) { transform: scale(.97); } .day:active, .pbar:active { transform: none; } }
-@media (min-width: 620px) and (min-height: 600px) {
-  body { background: var(--desk); }
-  .phone { height: min(900px, calc(100% - 48px)); margin-top: 24px; border: 10px solid var(--frame); border-radius: 44px; box-shadow: 0 30px 80px rgba(0,0,0,.28); }
-}
-
-.loading { display: grid; gap: 8px; }
+.toast { position: absolute; z-index: 50; left: 50%; transform: translateX(-50%); bottom: 84px; white-space: nowrap; background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-size: 13px; }
+.loading { display: grid; gap: 8px; margin-top: 14px; }
 .loading div { height: 54px; border-radius: 12px; background: var(--chip); }
 @media (prefers-reduced-motion: no-preference) { .sheet { animation: up .22s ease-out; } @keyframes up { from { transform: translateY(24px); opacity: .6; } } }
 </style>
@@ -271,12 +256,14 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
 
 <nav class="nav" aria-label="화면 전환">
   <div class="nav-in">
-    <button type="button" id="nav-home" data-tab="home" aria-current="page">
+    <button type="button" data-tab="home" aria-current="page">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>지금 집중</button>
-    <button type="button" id="nav-plan" data-tab="plan">
+    <button type="button" data-tab="plan">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>한 달 플랜</button>
-    <button type="button" id="nav-area" data-tab="area">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>업무별</button>
+    <button type="button" data-tab="area">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>업무별</button>
+    <button type="button" data-tab="budget">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14.5h2"/></svg>예산</button>
   </div>
 </nav>
 <div id="sheet-root"></div>
@@ -284,27 +271,19 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
 
 <script>
 (() => {
-  const PHASES = [
-    { key: "w4", label: "한 달 전", min: 22, max: 9999 },
-    { key: "w3", label: "3주 전", min: 15, max: 21 },
-    { key: "w2", label: "2주 전", min: 8, max: 14 },
-    { key: "w1", label: "마지막 주", min: 1, max: 7 },
-    { key: "d0", label: "행사 당일", min: 0, max: 0 },
-    { key: "after", label: "행사 후", min: -9999, max: -1 },
-  ];
   const STATUS_NEXT = { todo: "doing", doing: "done", done: "todo" };
   const STATUS_LABEL = { todo: "할 일", doing: "진행 중", done: "완료" };
   const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
   const DAY = 86400000;
   const PCOLORS = ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8"];
   const pcolor = k => `var(--${PCOLORS.includes(k) ? k : "p1"})`;
-  const FOCUS_KEY = "event-prep-focus", VIEW_KEY = "event-prep-view";
-  let view = (() => { try { return localStorage.getItem(VIEW_KEY) === "detail" ? "detail" : "big"; } catch (e) { return "big"; } })();
+  const FOCUS_KEY = "event-prep-focus", FOLD_KEY = "event-prep-folded";
 
   let db = null, localMode = false, readOnly = false, noStore = false;
-  let events = [], cur = null, areas = [], tasks = [], periods = [];
+  let events = [], cur = null, areas = [], tasks = [], periods = [], budget = [];
   let eventsLoaded = false, evLoaded = false, stale = false, unsubs = [];
   let tab = "home", statusFilter = "open", planMode = "cal", selDay = null;
+  let folded = new Set((() => { try { return JSON.parse(localStorage.getItem(FOLD_KEY)) || []; } catch (e) { return []; } })());
 
   // ---------- helpers ----------
   function h(tag, attrs, ...kids) {
@@ -319,60 +298,72 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
     return el;
   }
   const svg = (inner, w = 3) => { const t = document.createElement("template"); t.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`; return t.content.firstChild; };
+  const ICON_EDIT = '<path d="M4 20h4L19 9l-4-4L4 16z"/>', ICON_CHEV = '<path d="M6 9l6 6 6-6"/>', ICON_PLUS = '<path d="M12 5v14M5 12h14"/>';
   function parseDate(s) { if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null; const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
   function today() { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
-  function curEvent() { return events.find(e => e.id === cur) || null; }
-  function evDays(ev) { const d = parseDate(ev && ev.date); return d ? Math.round((d - today()) / DAY) : null; }
-  function eventDate() { const e = curEvent(); return e ? parseDate(e.date) : null; }
-  function daysLeft() { return evDays(curEvent()); }
-  function dueOf(t) { const e = eventDate(); return e ? addDays(e, -(Number(t.dday) || 0)) : null; }
   function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
-  function ddOf(d) { return Math.round((eventDate() - d) / DAY); }
   function isoOf(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
   function fmt(d) { return `${d.getMonth() + 1}/${d.getDate()}(${WEEK[d.getDay()]})`; }
-  function ddLabel(n) { n = Number(n) || 0; return n > 0 ? `D-${n}` : n === 0 ? "D-DAY" : `D+${-n}`; }
-  function isLate(t) { const dl = daysLeft(); return dl != null && t.status !== "done" && (Number(t.dday) || 0) > dl; }
-  function sortTasks(a, b) { return (Number(b.dday) || 0) - (Number(a.dday) || 0) || String(a.title).localeCompare(String(b.title), "ko"); }
-  function sortedAreas() { return areas.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); }
+  function daysFromToday(d) { return Math.round((d - today()) / DAY); }
+  function leftLabel(n) { return n > 0 ? `${n}일 남음` : n === 0 ? "오늘 마감" : `${-n}일 지남`; }
+  function ddayLabel(n) { return n == null ? "D-?" : n > 0 ? `D-${n}` : n === 0 ? "D-DAY" : `D+${-n}`; }
+  const curEvent = () => events.find(e => e.id === cur) || null;
+  const evDays = ev => { const d = parseDate(ev && ev.date); return d ? daysFromToday(d) : null; };
+  const eventDate = () => { const e = curEvent(); return e ? parseDate(e.date) : null; };
+  // deadlines are real dates; older items saved as "days before the event" are converted on read
+  function dueOf(t) {
+    if (t && "due" in t) return parseDate(t.due);
+    const e = eventDate(); return e && t && t.dday != null ? addDays(e, -(Number(t.dday) || 0)) : null;
+  }
+  function rangeOf(p) {
+    if (p.start || p.end) { const s = parseDate(p.start), en = parseDate(p.end) || s; return s ? { s, e: en < s ? s : en } : null; }
+    const e = eventDate(); if (!e) return null;
+    return { s: addDays(e, -(Number(p.startD) || 0)), e: addDays(e, -(Number(p.endD) || 0)) };
+  }
+  function isLate(t) { const d = dueOf(t); return !!d && t.status !== "done" && d < today(); }
+  function sortTasks(a, b) { const da = dueOf(a), dbb = dueOf(b); return (da ? da.getTime() : 9e15) - (dbb ? dbb.getTime() : 9e15) || String(a.title).localeCompare(String(b.title), "ko"); }
+  const sortedAreas = () => areas.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
   function areaName(id) { const a = areas.find(x => x.id === id); return a ? a.name || "업무" : "미분류"; }
-  function areaColorKey(id) {
-    const list = sortedAreas(), i = list.findIndex(a => a.id === id);
-    if (i < 0) return null;
-    return PCOLORS.includes(list[i].color) ? list[i].color : PCOLORS[i % PCOLORS.length];
-  }
+  function areaColorKey(id) { const list = sortedAreas(), i = list.findIndex(a => a.id === id); if (i < 0) return null; return PCOLORS.includes(list[i].color) ? list[i].color : PCOLORS[i % PCOLORS.length]; }
   const acVar = id => { const k = areaColorKey(id); return k ? `var(--${k})` : "var(--muted)"; };
-  function swatchPicker(name, current, label) {
-    return h("div", { class: "swatches", role: "radiogroup", "aria-label": label },
-      PCOLORS.map((k, i) => h("label", { style: `background:${pcolor(k)}`, title: `색 ${i + 1}` },
-        h("input", { type: "radio", name, id: `${name}-${k}`, value: k, checked: k === current, "aria-label": `색 ${i + 1}` }))));
-  }
-  function goToArea(id) {
-    setTab("area");
-    setTimeout(() => { const el = document.getElementById("area-" + id); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 30);
-  }
-  function periodsOn(dd) { return periods.filter(p => dd <= Number(p.startD) && dd >= Number(p.endD)); }
+  const periodsOn = d => periods.filter(p => { const r = rangeOf(p); return r && d >= r.s && d <= r.e; });
   function ptags(list) { return list.length ? h("span", { class: "ptags" }, list.map(p => h("span", { class: "ptag", style: `background:${pcolor(p.color)}` }, p.name || "기간"))) : null; }
+  const won = n => `${(Math.round(Number(n) || 0)).toLocaleString("ko-KR")}원`;
+  const parseMoney = s => Number(String(s || "").replace(/[^\d]/g, "")) || 0;
   function toast(msg) { const el = h("div", { class: "toast", role: "status" }, msg); document.getElementById("phone").append(el); setTimeout(() => el.remove(), 2200); }
   const P = c => `events/${cur}/${c}`;
   const canWrite = () => !!db && !readOnly && !noStore;
   function getFocus() { try { return localStorage.getItem(FOCUS_KEY); } catch (e) { return null; } }
   function setFocus(id) { try { id ? localStorage.setItem(FOCUS_KEY, id) : localStorage.removeItem(FOCUS_KEY); } catch (e) {} }
+  function saveFolded() { try { localStorage.setItem(FOLD_KEY, JSON.stringify([...folded])); } catch (e) {} }
+  function swatchPicker(name, current, label) {
+    return h("div", { class: "swatches", role: "radiogroup", "aria-label": label },
+      PCOLORS.map((k, i) => h("label", { style: `background:${pcolor(k)}`, title: `색 ${i + 1}` },
+        h("input", { type: "radio", name, id: `${name}-${k}`, value: k, checked: k === current, "aria-label": `색 ${i + 1}` }))));
+  }
+  function moneyInput(id, value) {
+    const el = h("input", { id, type: "text", inputmode: "numeric", autocomplete: "off", value: value ? Number(value).toLocaleString("ko-KR") : "", placeholder: "0" });
+    el.addEventListener("input", () => { const n = parseMoney(el.value); el.value = n ? n.toLocaleString("ko-KR") : ""; });
+    return el;
+  }
+  function goToArea(id) {
+    if (folded.delete(id)) saveFolded();
+    setTab("area");
+    setTimeout(() => { const el = document.getElementById("area-" + id); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 30);
+  }
 
   // ---------- data ----------
   async function save(fn, okMsg) {
     if (!canWrite()) { toast(noStore ? "로그인해야 저장할 수 있어요" : "보기 전용이라 수정할 수 없어요"); return false; }
     try { const r = await fn(); if (okMsg) toast(okMsg); return r === undefined ? true : r; }
     catch (e) {
-      if (e && e.code === "invalid_argument") { readOnly = true; toast("이 링크는 보기 전용이에요. 편집 권한을 요청하세요."); render(); }
-      else if (e && e.code === "quota_exceeded") toast("저장 공간이 가득 찼어요. 지난 행사를 정리해 주세요.");
-      else toast("저장하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      if (e && e.code === "invalid_argument") { readOnly = true; toast("보기 전용이에요. 편집 권한을 요청하세요."); render(); }
+      else if (e && e.code === "quota_exceeded") toast("저장 공간이 가득 찼어요.");
+      else toast("저장하지 못했어요. 다시 시도해 주세요.");
       return false;
     }
   }
-  function cycleStatus(t) {
-    const next = STATUS_NEXT[t.status] || "doing";
-    save(() => db.doc(P("tasks/" + t.id)).update({ status: next, updatedAt: Date.now() }));
-  }
+  function cycleStatus(t) { save(() => db.doc(P("tasks/" + t.id)).update({ status: STATUS_NEXT[t.status] || "doing", updatedAt: Date.now() })); }
   function pickEvent() {
     if (cur && events.some(e => e.id === cur)) return cur;
     const f = getFocus(); if (f && events.some(e => e.id === f)) return f;
@@ -381,20 +372,21 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
     const r = events.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     return r[0] ? r[0].id : null;
   }
+  const SUBS = ["areas", "tasks", "periods", "budget"];
   function switchEvent(id) {
     unsubs.forEach(u => u()); unsubs = [];
-    cur = id; selDay = null; areas = []; tasks = []; periods = [];
+    cur = id; selDay = null; areas = []; tasks = []; periods = []; budget = [];
     if (id) setFocus(id);
     evLoaded = !id;
     if (id) {
       let got = 0;
-      const sub = (name, assign) => {
+      const assign = { areas: v => areas = v, tasks: v => tasks = v, periods: v => periods = v, budget: v => budget = v };
+      for (const name of SUBS) {
         let first = true;
-        const mark = () => { if (first) { first = false; if (++got === 3) evLoaded = true; } };
-        unsubs.push(db.collection(P(name)).onSnapshot(s => { assign(s.docs.map(d => ({ id: d.id, ...d.data() }))); mark(); render(); },
+        const mark = () => { if (first) { first = false; if (++got === SUBS.length) evLoaded = true; } };
+        unsubs.push(db.collection(P(name)).onSnapshot(s => { assign[name](s.docs.map(d => ({ id: d.id, ...d.data() }))); mark(); render(); },
           () => { mark(); stale = true; render(); }));
-      };
-      sub("areas", v => areas = v); sub("tasks", v => tasks = v); sub("periods", v => periods = v);
+      }
     }
     render();
   }
@@ -402,130 +394,117 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
   // ---------- shared pieces ----------
   function taskRow(t, opts = {}) {
     const late = isLate(t), due = dueOf(t), st = t.status || "todo";
+    const n = due ? daysFromToday(due) : null;
     return h("div", { class: `task${late ? " is-late" : ""}${st === "done" ? " is-done" : ""}`, style: `--ac:${acVar(t.areaId)}` },
       h("button", { type: "button", class: `st ${st}`, "aria-label": `상태: ${STATUS_LABEL[st]} (눌러서 바꾸기)`, onclick: () => cycleStatus(t) }, st === "done" ? svg('<path d="M5 12l5 5 9-10"/>') : null),
       h("button", { type: "button", class: "t-body", onclick: () => openTask(t) },
         h("span", { class: "t-title" }, t.title || "(제목 없음)"),
         h("span", { class: "t-meta" },
-          h("span", { class: "d" }, ddLabel(t.dday)),
+          due ? h("span", { class: `left${st === "done" ? "" : late ? " late" : n <= 3 ? " soon" : ""}` }, st === "done" ? "완료" : leftLabel(n)) : h("span", null, "마감 미정"),
           due ? h("span", null, fmt(due)) : null,
           opts.hideArea ? null : h("span", { class: "pill area" }, areaName(t.areaId)),
-          t.owner ? h("span", { class: "t-extra" }, "· " + t.owner) : null,
-          late ? h("span", { class: "pill late" }, "기한 지남") : st === "doing" ? h("span", { class: "pill doing" }, "진행 중") : null),
+          t.owner ? h("span", null, "· " + t.owner) : null,
+          st === "doing" ? h("span", { class: "pill doing" }, "진행 중") : null),
         t.note ? h("span", { class: "t-note" }, t.note) : null));
   }
-  function list(items, opts, emptyMsg) {
-    return items.length ? h("div", { class: "list" }, items.map(t => taskRow(t, opts))) : h("p", { class: "empty" }, emptyMsg);
-  }
-  function eventBar() {
+  const list = (items, opts, emptyMsg) => items.length ? h("div", { class: "list" }, items.map(t => taskRow(t, opts))) : h("p", { class: "empty" }, emptyMsg);
+
+  function appBar() {
     const ev = curEvent();
-    return h("div", { class: "evbar" },
-      h("button", { type: "button", class: "ev-switch", onclick: openEventList, "aria-label": "행사 바꾸기" },
-        h("span", { class: "lbl" }, "행사 · 눌러서 바꾸기"),
-        h("span", { class: "nm" }, ev ? ev.name || "이름 없는 행사" : "행사 선택"),
-        events.length > 1 ? h("span", { class: "ev-count" }, events.length + "개") : null,
-        svg('<path d="M6 9l6 6 6-6"/>', 2.4)),
-      canWrite() ? h("button", { type: "button", class: "btn icon", onclick: () => openEventForm(null), "aria-label": "새 행사 만들기" }, svg('<path d="M12 5v14M5 12h14"/>', 2.6)) : null);
-  }
-  function topStrip() {
-    const legend = sortedAreas().map(a => h("button", { type: "button", class: "area-chip", style: `--ac:${acVar(a.id)}`, onclick: () => goToArea(a.id) },
-      h("i"), a.name || "업무"));
-    const toggle = h("div", { class: "vtoggle", role: "group", "aria-label": "보기 크기" },
-      [["big", "크게"], ["detail", "자세히"]].map(([k, l]) => h("button", { type: "button", "aria-pressed": String(view === k),
-        onclick: () => { view = k; try { localStorage.setItem(VIEW_KEY, k); } catch (e) {} render(); } }, l)));
-    return h("div", { class: "topstrip" }, legend.length ? h("div", { class: "area-legend", "aria-label": "업무 색" }, legend) : null, toggle);
+    const legend = sortedAreas().map(a => h("button", { type: "button", class: "area-chip", style: `--ac:${acVar(a.id)}`, onclick: () => goToArea(a.id) }, h("i"), a.name || "업무"));
+    return h("header", { class: "appbar" },
+      h("div", { class: "evbar" },
+        h("button", { type: "button", class: "ev-switch", onclick: openEventList, "aria-label": "행사 바꾸기" },
+          h("span", { class: "lbl" }, "행사 · 눌러서 바꾸기"),
+          h("span", { class: "nm" }, ev ? ev.name || "이름 없는 행사" : "행사 선택"),
+          events.length > 1 ? h("span", { class: "ev-count" }, events.length + "개") : null,
+          svg(ICON_CHEV, 2.4)),
+        canWrite() ? h("button", { type: "button", class: "btn icon", onclick: () => openEventForm(null), "aria-label": "새 행사 만들기" }, svg(ICON_PLUS, 2.6)) : null),
+      evLoaded && legend.length ? h("div", { class: "area-legend", "aria-label": "업무 바로가기" }, legend) : null);
   }
   function hero() {
-    const ev = curEvent(), dl = daysLeft(), e = eventDate();
-    const big = dl == null ? "D-?" : dl > 0 ? `D-${dl}` : dl === 0 ? "D-DAY" : `D+${-dl}`;
+    const ev = curEvent(), dl = evDays(ev), e = eventDate();
     return h("button", { type: "button", class: "hero", onclick: () => openEventForm(ev), "aria-label": "행사 정보 수정" },
       h("span", { class: "eyebrow" }, "지금 집중하는 행사"),
       h("h1", null, ev.name || "이름 없는 행사"),
       h("span", { class: "row" },
-        h("span", { class: "dday" }, big),
-        h("span", { class: "meta" }, e ? `${e.getFullYear()}. ${fmt(e)}${ev.place ? " · " + ev.place : ""}` : "날짜를 넣으면 일정이 계산돼요")),
-      dl != null ? ptags(periodsOn(dl)) : null,
+        h("span", { class: "dday" }, ddayLabel(dl)),
+        h("span", { class: "meta" }, e ? `${e.getFullYear()}. ${fmt(e)}${ev.place ? " · " + ev.place : ""}` : "행사 날짜를 넣어 주세요")),
+      ptags(periodsOn(today())),
       h("span", { class: "edit" }, e ? "행사 정보 수정" : "행사 날짜 설정하기"));
   }
   function starter() {
-    return h("section", { class: "card starter" },
+    return h("section", { class: "card starter", style: "margin-top:14px" },
       h("h2", null, "첫 행사를 만들어 보세요"),
-      h("p", null, "행사 이름과 날짜를 정하면, 업무별로 할 일을 직접 만들고 한 달 달력에서 일정을 볼 수 있어요. 행사는 여러 개 만들 수 있어요."),
+      h("p", null, "행사 이름과 날짜를 정하고, 업무별로 할 일을 직접 만들어요. 행사는 여러 개 만들 수 있어요."),
       canWrite() ? h("button", { type: "button", class: "btn tape", style: "flex:none", onclick: () => openEventForm(null) }, "+ 행사 만들기") : null);
   }
 
   // ---------- views ----------
   function viewHome() {
-    const dl = daysLeft();
     const open = tasks.filter(t => t.status !== "done");
-    let focus;
-    if (dl == null) focus = open.filter(t => t.status === "doing").concat(open.filter(t => t.status !== "doing").sort(sortTasks).slice(0, 5));
-    else focus = open.filter(t => isLate(t) || t.status === "doing" || (Number(t.dday) || 0) >= dl - 6);
-    focus = focus.sort(sortTasks);
+    const week = addDays(today(), 7);
+    let focus = open.filter(t => { const d = dueOf(t); return t.status === "doing" || (d && d <= week); }).sort(sortTasks);
+    if (!focus.length) focus = open.slice().sort(sortTasks).slice(0, 3);
     const later = open.filter(t => !focus.includes(t)).sort(sortTasks).slice(0, 5);
-    const nothingYet = !tasks.length;
     return [
       hero(),
       h("section", { class: "list" },
-        h("h2", { class: "sec-title" }, "지금 집중할 일", h("small", null, dl == null ? "진행 중 · 가까운 마감" : "기한 지남 · 진행 중 · 7일 안 마감")),
-        nothingYet
+        h("h2", { class: "sec-title" }, "지금 집중할 일", h("small", null, "지난 일 · 진행 중 · 7일 안 마감")),
+        !tasks.length
           ? h("div", { class: "card starter" },
               h("p", null, "아직 할 일이 없어요. 업무별 탭에서 업무를 만들고 할 일을 추가하면 여기에 떠요."),
               h("button", { type: "button", class: "btn primary", style: "flex:none", onclick: () => setTab("area") }, "업무별에서 할 일 만들기"))
-          : list(focus, {}, "지금 급한 일은 없어요. 아래 다음 할 일을 확인해 보세요.")),
+          : list(focus, {}, "남은 할 일이 없어요. 수고하셨어요!")),
       later.length ? h("section", { class: "list" }, h("h2", { class: "sec-title" }, "그다음 할 일", h("small", null, "마감 순")), list(later, {}, "")) : null,
     ];
   }
 
   function viewPlan() {
-    const title = h("h2", { class: "sec-title" }, "한 달 플랜", h("small", null, planMode === "cal" ? "날짜를 눌러 할 일 보기" : "D-30 → 행사 후"));
+    const title = h("h2", { class: "sec-title" }, "한 달 플랜", h("small", null, planMode === "cal" ? "날짜를 누르면 그날 할 일이 보여요" : "주별 마감 순"));
     const seg = h("div", { class: "seg", role: "group", "aria-label": "보기 방식" },
-      [["cal", "달력"], ["list", "단계별 목록"]].map(([k, l]) => h("button", { type: "button", "aria-pressed": String(k === planMode), onclick: () => { planMode = k; render(); } }, l)));
-    if (planMode === "list") return [title, seg, ...viewPlanList()];
-    const e = eventDate();
-    if (!e) return [title, seg, h("div", { class: "card starter" },
-      h("p", null, "행사 날짜를 정하면 D-day 기준으로 한 달 달력과 기간 막대가 그려져요."),
-      h("button", { type: "button", class: "btn primary", style: "flex:none", onclick: () => openEventForm(curEvent()) }, "행사 날짜 설정하기"))];
+      [["cal", "달력"], ["list", "주별 목록"]].map(([k, l]) => h("button", { type: "button", "aria-pressed": String(k === planMode), onclick: () => { planMode = k; render(); } }, l)));
+    if (planMode === "list") return [title, seg, ...viewWeekList()];
 
-    const ds = tasks.map(t => Number(t.dday) || 0), ps = periods.flatMap(p => [Number(p.startD) || 0, Number(p.endD) || 0]);
-    const hi = Math.max(30, ...ds, ...ps), lo = Math.min(0, ...ds, ...ps);
-    const first = addDays(e, -hi), last = addDays(e, -lo);
-    const dl = daysLeft();
-    if (selDay == null || selDay > hi || selDay < lo) selDay = dl != null && dl <= hi && dl >= lo ? dl : 0;
+    const t0 = today(), ev = eventDate();
+    let first = t0, last = ev && ev > t0 ? ev : addDays(t0, 27);
+    tasks.forEach(t => { const d = dueOf(t); if (d) { if (d < first) first = d; if (d > last) last = d; } });
+    periods.forEach(p => { const r = rangeOf(p); if (r) { if (r.s < first) first = r.s; if (r.e > last) last = r.e; } });
+    if (first < addDays(t0, -62)) first = addDays(t0, -62);
+    if (last > addDays(t0, 200)) last = addDays(t0, 200);
+    const firstIso = isoOf(first), lastIso = isoOf(last);
+    if (!selDay || selDay < firstIso || selDay > lastIso) selDay = isoOf(t0);
     const byDay = {};
-    tasks.forEach(t => { const d = Number(t.dday) || 0; (byDay[d] = byDay[d] || []).push(t); });
+    tasks.forEach(t => { const d = dueOf(t); if (d) (byDay[isoOf(d)] = byDay[isoOf(d)] || []).push(t); });
+    const evIso = ev ? isoOf(ev) : "", todayIso = isoOf(t0);
 
     const cal = h("div", { class: "cal", role: "grid", "aria-label": "한 달 준비 달력" },
       h("div", { class: "dow", "aria-hidden": "true" }, WEEK.map(w => h("span", null, w))));
     for (let ws = addDays(first, -first.getDay()); ws <= last; ws = addDays(ws, 7)) {
       const week = h("div", { class: "week", role: "row" });
       for (let i = 0; i < 7; i++) {
-        const d = addDays(ws, i), dd = ddOf(d), items = byDay[dd] || [];
+        const d = addDays(ws, i), iso = isoOf(d), items = (byDay[iso] || []).slice().sort((a, b) => (a.status === "done") - (b.status === "done"));
         const inRange = d >= first && d <= last;
-        const ordered = items.slice().sort((a, b) => (a.status === "done") - (b.status === "done"));
-        const dots = view === "detail"
-          ? h("span", { class: "cchips", "aria-hidden": "true" },
-              ordered.slice(0, 3).map(t => h("span", { class: `cchip${t.status === "done" ? " done" : ""}${isLate(t) ? " late" : ""}`, style: `--ac:${acVar(t.areaId)}` }, t.title || "")),
-              ordered.length > 3 ? h("span", { class: "cmore" }, "+" + (ordered.length - 3)) : null)
-          : h("span", { class: "dots", "aria-hidden": "true" },
-              ordered.slice(0, 4).map(t => h("i", { class: t.status === "done" ? "done" : isLate(t) ? "late" : "", style: `--ac:${acVar(t.areaId)}` })),
-              ordered.length > 4 ? h("b", null, "+" + (ordered.length - 4)) : null);
         week.append(h("button", {
           type: "button", role: "gridcell",
-          class: `day${i === 0 ? " sun" : ""}${inRange ? "" : " out"}${dd === dl ? " today" : ""}${dd === 0 ? " event" : ""}${dd === selDay ? " sel" : ""}`,
+          class: `day${i === 0 ? " sun" : ""}${inRange ? "" : " out"}${iso === todayIso ? " today" : ""}${iso === evIso ? " event" : ""}${iso === selDay ? " sel" : ""}`,
           style: `grid-column:${i + 1}`,
-          "aria-label": `${fmt(d)} ${ddLabel(dd)}${dd === 0 ? " 행사일" : ""}, 할 일 ${items.length}건`,
-          "aria-selected": String(dd === selDay),
-          onclick: () => { selDay = dd; render(); },
-        }, h("span", { class: "mon" }, d.getDate() === 1 || (i === 0 && ws <= first) ? `${d.getMonth() + 1}월` : ""), h("span", { class: "n" }, d.getDate()), dots));
+          "aria-label": `${fmt(d)}${iso === evIso ? " 행사일" : ""}${iso === todayIso ? " 오늘" : ""}, 할 일 ${items.length}건`,
+          "aria-selected": String(iso === selDay),
+          onclick: () => { selDay = iso; render(); },
+        },
+          h("span", { class: "mon" }, d.getDate() === 1 || (i === 0 && ws <= first) ? `${d.getMonth() + 1}월` : ""),
+          h("span", { class: "n" }, d.getDate()),
+          h("span", { class: "cchips", "aria-hidden": "true" },
+            items.slice(0, 3).map(t => h("span", { class: `cchip${t.status === "done" ? " done" : ""}${isLate(t) ? " late" : ""}`, style: `--ac:${acVar(t.areaId)}` }, t.title || "")),
+            items.length > 3 ? h("span", { class: "cmore" }, "+" + (items.length - 3)) : null)));
       }
-      const wsDD = ddOf(ws);
       const segs = periods.map(p => {
-        const sD = Number(p.startD) || 0, eD = Number(p.endD) || 0;
-        const cols = [0, 1, 2, 3, 4, 5, 6].filter(i => { const dd = wsDD - i; return dd <= sD && dd >= eD; });
+        const r = rangeOf(p); if (!r) return null;
+        const cols = [0, 1, 2, 3, 4, 5, 6].filter(i => { const d = addDays(ws, i); return d >= r.s && d <= r.e; });
         if (!cols.length) return null;
         const s = cols[0], en = cols[cols.length - 1];
-        return { p, s, en, cl: wsDD - s < sD, cr: wsDD - en > eD };
+        return { p, s, en, cl: addDays(ws, s) > r.s, cr: addDays(ws, en) < r.e };
       }).filter(Boolean).sort((a, b) => a.s - b.s || (b.en - b.s) - (a.en - a.s));
       const laneEnd = [];
       for (const sg of segs) {
@@ -540,96 +519,129 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
       cal.append(week);
     }
     cal.append(h("div", { class: "cal-legend" },
-      h("span", null, view === "detail" ? "칸 색 = 업무" : "점 색 = 업무"),
-      h("span", null, "흐리게 = 완료"),
-      h("span", { style: "color:var(--late)" }, "빨간 테두리 = 기한 지남"),
-      h("span", null, view === "detail" ? "‘크게’로 바꾸면 한눈에 보여요" : "‘자세히’로 바꾸면 할 일 이름이 보여요")));
+      h("span", null, "칸 색 = 업무"), h("span", null, "흐리게 = 완료"),
+      h("span", { style: "color:var(--late)" }, "빨간 테두리 = 마감 지남"), ev ? h("span", null, "노란 날 = 행사일") : null));
 
-    const selDate = addDays(e, -selDay), selTasks = (byDay[selDay] || []).slice().sort(sortTasks);
+    const sd = parseDate(selDay), selTasks = (byDay[selDay] || []).slice().sort(sortTasks), sn = daysFromToday(sd);
     const daySec = h("section", { class: "list" },
-      h("h2", { class: "sec-title" }, `${fmt(selDate)} · ${ddLabel(selDay)}`, h("small", null, `할 일 ${selTasks.length}건`)),
-      ptags(periodsOn(selDay)),
+      h("h2", { class: "sec-title" }, fmt(sd), h("small", null, `${sn === 0 ? "오늘" : sn > 0 ? sn + "일 뒤" : -sn + "일 전"} · 할 일 ${selTasks.length}건`)),
+      ptags(periodsOn(sd)),
       list(selTasks, {}, "이 날 마감인 할 일이 없어요."),
-      canWrite() ? h("button", { type: "button", class: "add-line", onclick: () => openTask(null, { dday: selDay }) }, "+ 이 날에 할 일 추가") : null);
+      canWrite() ? h("button", { type: "button", class: "add-line", onclick: () => openTask(null, { due: selDay }) }, "+ 이 날 마감으로 할 일 추가") : null);
 
-    const plist = periods.slice().sort((a, b) => (Number(b.startD) || 0) - (Number(a.startD) || 0));
+    const plist = periods.map(p => ({ p, r: rangeOf(p) })).filter(x => x.r).sort((a, b) => a.r.s - b.r.s);
     const perSec = h("section", { class: "list" },
       h("h2", { class: "sec-title" }, "기간 설정", canWrite() ? h("button", { type: "button", class: "btn small", onclick: () => openPeriod(null) }, "+ 기간 추가") : null),
-      plist.length ? plist.map(p => {
-        const s = addDays(e, -(Number(p.startD) || 0)), en = addDays(e, -(Number(p.endD) || 0));
-        const n = (Number(p.startD) || 0) - (Number(p.endD) || 0) + 1;
-        return h("button", { type: "button", class: "period-row", onclick: () => openPeriod(p) },
+      plist.length ? plist.map(({ p, r }) => h("button", { type: "button", class: "period-row", onclick: () => openPeriod(p) },
           h("span", { class: "sw", style: `background:${pcolor(p.color)}` }),
-          h("span", { style: "display:grid;gap:2px;min-width:0" }, h("span", { class: "pn" }, p.name || "기간"), h("span", { class: "pd" }, `${fmt(s)} ~ ${fmt(en)} · ${ddLabel(p.startD)} ~ ${ddLabel(p.endD)}`)),
-          h("span", { class: "len" }, `${n}일`));
-      }) : h("p", { class: "empty" }, "홍보 기간, 제작 기간처럼 묶고 싶은 날짜 범위를 추가하면 달력에 색깔 막대로 표시돼요."));
-
+          h("span", { style: "display:grid;gap:2px;min-width:0" }, h("span", { class: "pn" }, p.name || "기간"), h("span", { class: "pd" }, `${fmt(r.s)} ~ ${fmt(r.e)}`)),
+          h("span", { class: "len" }, `${Math.round((r.e - r.s) / DAY) + 1}일`)))
+        : h("p", { class: "empty" }, "홍보 기간, 제작 기간처럼 날짜 범위를 추가하면 달력에 색깔 막대로 보여요."));
     return [title, seg, cal, daySec, perSec];
   }
 
-  function viewPlanList() {
-    const dl = daysLeft(), e = eventDate();
+  function viewWeekList() {
+    const groups = new Map(), none = [];
+    const thisWeek = isoOf(addDays(today(), -today().getDay()));
+    tasks.slice().sort(sortTasks).forEach(t => {
+      const d = dueOf(t); if (!d) { none.push(t); return; }
+      const k = isoOf(addDays(d, -d.getDay()));
+      if (!groups.has(k)) groups.set(k, []); groups.get(k).push(t);
+    });
     const out = [];
-    for (const p of PHASES) {
-      const items = tasks.filter(t => { const d = Number(t.dday) || 0; return d >= p.min && d <= p.max; }).sort(sortTasks);
-      if (!items.length && p.key === "after") continue;
-      const isNow = dl != null && dl >= p.min && dl <= p.max;
-      let range = p.key === "d0" ? "D-DAY" : p.key === "after" ? "D+1 ~" : `D-${p.max === 9999 ? "30" : p.max} ~ D-${p.min}`;
-      if (e && p.key !== "after") {
-        const from = addDays(e, -(p.max === 9999 ? 30 : p.max)), to = addDays(e, -p.min);
-        range += p.key === "d0" ? ` · ${fmt(to)}` : ` · ${fmt(from)}~${fmt(to)}`;
-      }
-      out.push(h("section", { class: `phase${isNow ? " now" : ""}` },
-        h("div", { class: "phase-head" }, h("h3", null, p.label), h("span", { class: "range" }, range), isNow ? h("span", { class: "now-tag" }, "지금") : null),
-        list(items, {}, "이 기간에 잡힌 일이 없어요.")));
+    for (const [k, items] of [...groups.entries()].sort()) {
+      const ws = parseDate(k), diff = Math.round((ws - parseDate(thisWeek)) / (7 * DAY));
+      const label = diff === 0 ? "이번 주" : diff === 1 ? "다음 주" : diff === -1 ? "지난주" : diff < 0 ? `${-diff}주 전` : `${diff}주 뒤`;
+      out.push(h("section", { class: "list" },
+        h("div", { class: "wk-head" }, h("h3", null, label), h("span", null, `${fmt(ws)} ~ ${fmt(addDays(ws, 6))}`)),
+        list(items, {}, "")));
     }
+    if (none.length) out.push(h("section", { class: "list" }, h("div", { class: "wk-head" }, h("h3", null, "마감 미정")), list(none, {}, "")));
+    if (!out.length) out.push(h("p", { class: "empty" }, "마감일을 넣은 할 일이 여기에 주별로 모여요."));
     return out;
   }
 
   function viewArea() {
-    const head = h("h2", { class: "sec-title" }, "업무별", canWrite() ? h("button", { type: "button", class: "btn small", onclick: () => openArea(null) }, "+ 업무 추가") : null);
     const list0 = sortedAreas();
     const orphan = tasks.filter(t => !areas.some(a => a.id === t.areaId));
-    if (!list0.length && !orphan.length) return [head, h("section", { class: "card starter" },
-      h("p", null, "행사 준비를 업무로 나눠 보세요. 예를 들어 장소, 홍보, 섭외, 물품처럼요. 업무를 만들고 그 안에 할 일을 추가하면 ‘지금 집중’ 화면에 떠요."),
+    const ids = list0.map(a => a.id).concat(orphan.length ? ["none"] : []);
+    const allFolded = ids.length && ids.every(id => folded.has(id));
+    const head = h("h2", { class: "sec-title" }, "업무별",
+      h("span", { class: "sec-actions" },
+        ids.length ? h("button", { type: "button", class: "btn small", onclick: () => { if (allFolded) ids.forEach(id => folded.delete(id)); else ids.forEach(id => folded.add(id)); saveFolded(); render(); } }, allFolded ? "모두 펼치기" : "모두 접기") : null,
+        canWrite() ? h("button", { type: "button", class: "btn small", onclick: () => openArea(null) }, "+ 업무") : null));
+    if (!ids.length) return [head, h("section", { class: "card starter" },
+      h("p", null, "행사 준비를 업무로 나눠 보세요. 예: 디자인, 영상제작, 장소, 홍보. 업무 안에 할 일을 추가하면 ‘지금 집중’ 화면에 떠요."),
       canWrite() ? h("button", { type: "button", class: "btn tape", style: "flex:none", onclick: () => openArea(null) }, "+ 첫 업무 만들기") : null)];
     const seg = h("div", { class: "seg", role: "group", "aria-label": "상태 필터" },
       [["open", "남은 일"], ["all", "전체"], ["done", "완료"]].map(([k, l]) =>
         h("button", { type: "button", "aria-pressed": String(k === statusFilter), onclick: () => { statusFilter = k; render(); } }, l)));
     const pass = t => statusFilter === "all" ? true : statusFilter === "done" ? t.status === "done" : t.status !== "done";
-    const groups = list0.map(a => ({ a, all: tasks.filter(t => t.areaId === a.id) }));
-    if (orphan.length) groups.push({ a: null, all: orphan });
-    const cards = groups.map(({ a, all }) => {
+    const groups = list0.map(a => ({ a, id: a.id, all: tasks.filter(t => t.areaId === a.id) }));
+    if (orphan.length) groups.push({ a: null, id: "none", all: orphan });
+    const cards = groups.map(({ a, id, all }) => {
+      const closed = folded.has(id);
       const items = all.filter(pass).sort(sortTasks);
-      const owners = [...new Set(all.map(t => t.owner).filter(Boolean))];
-      return h("section", { class: "card area-card", id: a ? "area-" + a.id : "area-none", style: `--ac:${a ? acVar(a.id) : "var(--muted)"}` },
+      const openCount = all.filter(t => t.status !== "done").length;
+      const next = all.filter(t => t.status !== "done" && dueOf(t)).sort(sortTasks)[0];
+      const sub = `남은 일 ${openCount}개${next ? " · 가장 가까운 마감 " + leftLabel(daysFromToday(dueOf(next))) : ""}`;
+      return h("section", { class: `card area-card${closed ? " closed" : ""}`, id: "area-" + id, style: `--ac:${a ? acVar(a.id) : "var(--muted)"}` },
         h("div", { class: "area-head" },
-          a ? h("button", { type: "button", class: "area-name", onclick: () => openArea(a), "aria-label": `${a.name} 업무 이름·색 바꾸기` }, h("i", { class: "dot" }), h("span", null, a.name || "업무"), svg('<path d="M4 20h4L19 9l-4-4L4 16z"/>', 2))
-            : h("span", { class: "area-name" }, h("i", { class: "dot" }), h("span", null, "미분류")),
-          h("span", { class: "area-sub" }, `할 일 ${all.length}개`)),
-        owners.length ? h("span", { class: "area-sub" }, "담당: " + owners.join(", ")) : null,
-        list(items, { hideArea: true }, statusFilter === "done" ? "완료한 일이 없어요." : statusFilter === "open" && all.length ? "남은 일이 없어요." : "아직 할 일이 없어요."),
-        canWrite() ? h("button", { type: "button", class: "add-line", onclick: () => openTask(null, { areaId: a ? a.id : "" }) }, "+ 할 일 추가") : null);
+          h("button", { type: "button", class: "area-toggle", "aria-expanded": String(!closed), onclick: () => { closed ? folded.delete(id) : folded.add(id); saveFolded(); render(); } },
+            svg(ICON_CHEV, 2.4), h("i", { class: "dot" }), h("span", { class: "nm" }, a ? a.name || "업무" : "미분류"), h("span", { class: "sub" }, sub)),
+          a && canWrite() ? h("button", { type: "button", class: "icon-btn", onclick: () => openArea(a), "aria-label": `${a.name} 업무 이름·색 바꾸기` }, svg(ICON_EDIT, 2)) : null),
+        closed ? null : list(items, { hideArea: true }, statusFilter === "done" ? "완료한 일이 없어요." : statusFilter === "open" && all.length ? "남은 일이 없어요." : "아직 할 일이 없어요."),
+        closed || !canWrite() ? null : h("button", { type: "button", class: "add-line", onclick: () => openTask(null, { areaId: a ? a.id : "" }) }, "+ 할 일 추가"));
     });
     return [head, seg, ...cards];
+  }
+
+  function viewBudget() {
+    const ev = curEvent(), total = Number(ev.budgetTotal) || 0;
+    const planned = budget.reduce((s, b) => s + (Number(b.planned) || 0), 0);
+    const actual = budget.reduce((s, b) => s + (Number(b.actual) || 0), 0);
+    const remain = total - actual;
+    const sum = h("div", { class: "sum" },
+      h("button", { type: "button", class: "edit-total", onclick: openBudgetTotal, "aria-label": "총 예산 정하기" }, h("span", null, "총 예산"), h("b", null, total ? won(total) : "정하기")),
+      h("div", null, h("span", null, "계획 합계"), h("b", null, won(planned))),
+      h("div", null, h("span", null, "실제 지출"), h("b", null, won(actual))),
+      h("div", { class: total && remain < 0 ? "neg" : "" }, h("span", null, total && remain < 0 ? "예산 초과" : "남은 예산"), h("b", null, total ? won(Math.abs(remain)) : "—")));
+    const head = h("h2", { class: "sec-title" }, "예산안", canWrite() ? h("button", { type: "button", class: "btn small", onclick: () => openBudgetItem(null) }, "+ 항목") : null);
+    if (!budget.length) return [sum, head, h("section", { class: "card starter" },
+      h("p", null, "업체 견적, 제작비, 대관료처럼 돈이 드는 항목을 넣어 보세요. 계획 금액과 실제 지출을 따로 적을 수 있어요."),
+      canWrite() ? h("button", { type: "button", class: "btn tape", style: "flex:none", onclick: () => openBudgetItem(null) }, "+ 첫 예산 항목") : null)];
+    const groups = sortedAreas().map(a => ({ id: a.id, name: a.name || "업무", ac: acVar(a.id), items: budget.filter(b => b.areaId === a.id) }));
+    groups.push({ id: "", name: "기타", ac: "var(--muted)", items: budget.filter(b => !areas.some(a => a.id === b.areaId)) });
+    const cards = groups.filter(g => g.items.length).map(g => {
+      const gp = g.items.reduce((s, b) => s + (Number(b.planned) || 0), 0), ga = g.items.reduce((s, b) => s + (Number(b.actual) || 0), 0);
+      return h("section", { class: "card b-group", style: `--ac:${g.ac}` },
+        h("div", { class: "b-group-head" }, h("h3", null, h("i"), g.name), h("small", null, `${won(ga)} / ${won(gp)}`)),
+        g.items.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).map(b => {
+          const p = Number(b.planned) || 0, a = Number(b.actual) || 0;
+          return h("button", { type: "button", class: "b-row", onclick: () => openBudgetItem(b) },
+            h("span", { class: "nm" }, b.name || "항목"),
+            h("span", { class: "amt" }, h("b", { class: a > p && p ? "over" : "" }, a ? won(a) : "미지출"), h("small", null, "계획 " + won(p))),
+            h("span", { class: "meta" }, b.paid ? h("span", { class: "pill paid" }, "결제 완료") : h("span", { class: "pill" }, "미결제"), b.vendor ? h("span", null, b.vendor) : null, b.note ? h("span", null, "· " + b.note) : null));
+        }),
+        canWrite() ? h("button", { type: "button", class: "add-line", onclick: () => openBudgetItem(null, g.id) }, `+ ${g.name} 항목 추가`) : null);
+    });
+    return [sum, head, ...cards];
   }
 
   function render() {
     const app = document.getElementById("app");
     app.replaceChildren();
     const notes = document.createDocumentFragment();
-    if (noStore) notes.append(h("p", { class: "notice" }, "로그인한 상태에서 열면 팀원과 함께 저장되고 실시간으로 공유돼요. 지금은 볼 수만 있어요."));
-    else if (readOnly) notes.append(h("p", { class: "notice" }, "보기 전용 권한이에요. 수정하려면 공유한 사람에게 ‘참여자’ 이상 권한을 요청하세요."));
+    if (noStore) notes.append(h("p", { class: "notice" }, "로그인한 상태에서 열면 팀원과 함께 저장돼요. 지금은 볼 수만 있어요."));
+    else if (readOnly) notes.append(h("p", { class: "notice" }, "보기 전용 권한이에요. 수정하려면 ‘참여자’ 이상 권한을 요청하세요."));
     else if (localMode && tab === "home") notes.append(h("p", { class: "notice" }, "이 기기 브라우저에 저장돼요. 다른 기기·팀원과는 공유되지 않아요."));
     if (stale && !eventsLoaded) notes.append(h("p", { class: "notice" }, "데이터를 아직 불러오지 못했어요. 연결을 확인해 주세요."));
     document.querySelectorAll(".nav button").forEach(b => b.dataset.tab === tab ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
     if (!eventsLoaded) { app.append(notes, h("div", { class: "loading", "aria-label": "불러오는 중" }, h("div"), h("div"), h("div"))); return; }
     if (!events.length || !curEvent()) { app.append(notes, starter()); return; }
-    document.body.classList.toggle("v-big", view === "big");
-    document.body.classList.toggle("v-detail", view === "detail");
-    app.append(h("header", { class: "appbar" }, eventBar(), evLoaded ? topStrip() : null), notes);
+    app.append(appBar(), notes);
     if (!evLoaded) { app.append(h("div", { class: "loading", "aria-label": "불러오는 중" }, h("div"), h("div"))); return; }
-    const v = tab === "plan" ? viewPlan() : tab === "area" ? viewArea() : viewHome();
+    const v = tab === "plan" ? viewPlan() : tab === "area" ? viewArea() : tab === "budget" ? viewBudget() : viewHome();
     app.append(...v.filter(Boolean));
   }
   function setTab(t) { tab = t; render(); document.getElementById("screen").scrollTop = 0; }
@@ -641,7 +653,6 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
     const sheet = h("div", { class: "sheet", role: "dialog", "aria-modal": "true", "aria-label": title }, h("div", { class: "grip" }), h("h2", null, title), ...body);
     const bd = h("div", { class: "backdrop", onclick: e => { if (e.target === bd) closeSheet(); } }, sheet);
     document.getElementById("sheet-root").replaceChildren(bd);
-    const first = sheet.querySelector("input:not([type=radio]),select,textarea"); if (first) setTimeout(() => first.focus(), 50);
   }
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
   function deleteButton(onConfirm) {
@@ -653,6 +664,14 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
     return b;
   }
   function lockIfReadOnly(form) { if (!canWrite()) form.querySelectorAll("input,select,textarea,button[type=submit],.btn.danger").forEach(x => x.disabled = true); }
+  function formActions(delBtn, isNew, newLabel) {
+    return h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), h("button", { type: "submit", class: "btn primary" }, isNew ? newLabel : "저장하기"));
+  }
+  function areaSelect(id, value, noneLabel) {
+    const opts = sortedAreas().map(a => h("option", { value: a.id, selected: a.id === value }, a.name || "업무"));
+    opts.push(h("option", { value: "", selected: !areas.some(a => a.id === value) }, noneLabel));
+    return h("select", { id }, opts);
+  }
 
   function openEventList() {
     const rows = events.slice().sort((a, b) => {
@@ -666,7 +685,7 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
         h("button", { type: "button", class: "ev-main", onclick: () => { closeSheet(); if (ev.id !== cur) { switchEvent(ev.id); setTab("home"); } } },
           h("span", { class: "nm" }, ev.name || "이름 없는 행사"),
           h("span", { class: "mt" },
-            dd != null ? h("span", { class: "dd" }, dd > 0 ? `D-${dd}` : dd === 0 ? "D-DAY" : `D+${-dd}`) : null,
+            dd != null ? h("span", { class: "dd" }, ddayLabel(dd)) : null,
             h("span", null, d ? `${d.getFullYear()}. ${fmt(d)}` : "날짜 미정"),
             ev.place ? h("span", null, ev.place) : null,
             ev.id === cur ? h("span", { class: "now-tag" }, "지금 집중") : null)),
@@ -682,13 +701,13 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
   function openEventForm(ev) {
     const isNew = !ev;
     ev = ev || { name: "", date: "", place: "" };
-    const fName = h("input", { id: "e-name", type: "text", value: ev.name || "", placeholder: "예: 연말 네트워킹 파티", maxlength: "60", required: true });
+    const fName = h("input", { id: "e-name", type: "text", value: ev.name || "", placeholder: "예: 제 2회 북구의 밤", maxlength: "60", required: true });
     const fDate = h("input", { id: "e-date", type: "date", value: ev.date || "" });
-    const fPlace = h("input", { id: "e-place", type: "text", value: ev.place || "", placeholder: "예: 성수 ○○홀", maxlength: "60" });
+    const fPlace = h("input", { id: "e-place", type: "text", value: ev.place || "", placeholder: "예: 북구청 광장", maxlength: "60" });
     const delBtn = isNew ? null : deleteButton(async () => {
       const ok = await save(async () => {
         if (cur === ev.id) { switchEvent(null); setFocus(null); }
-        for (const c of ["tasks", "periods", "areas"]) {
+        for (const c of SUBS) {
           const s = await db.collection(`events/${ev.id}/${c}`).get();
           for (const d of s.docs) await db.doc(`events/${ev.id}/${c}/${d.id}`).delete();
         }
@@ -706,24 +725,22 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
       } else if (await save(() => db.doc("events/" + ev.id).update(body), "행사 정보를 저장했어요")) closeSheet();
     } },
       h("div", { class: "field" }, h("label", { for: "e-name" }, "행사 이름"), fName),
-      h("div", { class: "field" }, h("label", { for: "e-date" }, "행사 날짜"), fDate, h("span", { class: "hint" }, "날짜를 바꾸면 할 일과 기간이 D-day 기준으로 함께 움직여요.")),
+      h("div", { class: "field" }, h("label", { for: "e-date" }, "행사 날짜"), fDate),
       h("div", { class: "field" }, h("label", { for: "e-place" }, "장소"), fPlace),
-      isNew ? null : h("span", { class: "hint" }, "행사를 삭제하면 그 행사의 업무, 할 일, 기간도 모두 지워져요."),
-      h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), h("button", { type: "submit", class: "btn primary" }, isNew ? "만들기" : "저장하기")));
+      isNew ? null : h("span", { class: "hint" }, "행사를 삭제하면 그 행사의 업무, 할 일, 기간, 예산도 모두 지워져요."),
+      formActions(delBtn, isNew, "만들기"));
     lockIfReadOnly(form);
     openSheet(isNew ? "새 행사" : "행사 정보", [form]);
   }
 
   function openArea(a) {
     const isNew = !a;
-    const fName = h("input", { id: "a-name", type: "text", value: a ? a.name || "" : "", placeholder: "예: 홍보, 장소, 섭외", maxlength: "20", required: true });
+    const fName = h("input", { id: "a-name", type: "text", value: a ? a.name || "" : "", placeholder: "예: 디자인, 영상제작, 장소", maxlength: "20", required: true });
     const used = new Set(sortedAreas().map(x => areaColorKey(x.id)));
     const curColor = a ? areaColorKey(a.id) : (PCOLORS.find(k => !used.has(k)) || PCOLORS[areas.length % PCOLORS.length]);
     const sw = swatchPicker("a-color", curColor, "업무 색");
     const count = a ? tasks.filter(t => t.areaId === a.id).length : 0;
-    const delBtn = isNew ? null : deleteButton(async () => {
-      if (await save(() => db.doc(P("areas/" + a.id)).delete(), "업무를 삭제했어요")) closeSheet();
-    });
+    const delBtn = isNew ? null : deleteButton(async () => { if (await save(() => db.doc(P("areas/" + a.id)).delete(), "업무를 삭제했어요")) closeSheet(); });
     const form = h("form", { class: "field", style: "gap:14px", onsubmit: async e => {
       e.preventDefault();
       const name = fName.value.trim(); if (!name) { fName.focus(); return; }
@@ -733,41 +750,34 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
       if (ok) closeSheet();
     } },
       h("div", { class: "field" }, h("label", { for: "a-name" }, "업무 이름"), fName),
-      h("div", { class: "field" }, h("span", { class: "lab" }, "업무 색"), sw, h("span", { class: "hint" }, "이 업무의 할 일이 목록과 달력에서 이 색으로 보여요.")),
-      !isNew && count ? h("span", { class: "hint" }, `업무를 삭제해도 할 일 ${count}개는 남고 ‘미분류’로 옮겨져요.`) : null,
-      h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), h("button", { type: "submit", class: "btn primary" }, isNew ? "만들기" : "저장하기")));
+      h("div", { class: "field" }, h("span", { class: "lab" }, "업무 색"), sw),
+      !isNew && count ? h("span", { class: "hint" }, `업무를 삭제해도 할 일 ${count}개는 ‘미분류’로 남아요.`) : null,
+      formActions(delBtn, isNew, "만들기"));
     lockIfReadOnly(form);
     openSheet(isNew ? "업무 추가" : "업무 수정", [form]);
   }
 
   function openTask(t, preset = {}) {
-    const isNew = !t, e = eventDate();
+    const isNew = !t;
     const firstArea = sortedAreas()[0];
-    t = t || { title: "", areaId: preset.areaId ?? (firstArea ? firstArea.id : ""), dday: preset.dday ?? Math.max(0, daysLeft() ?? 14), status: "todo", owner: "", note: "" };
-    const fTitle = h("input", { id: "f-title", type: "text", value: t.title, placeholder: "예: 현수막 시안 확정", maxlength: "80", required: true });
-    const opts = sortedAreas().map(a => h("option", { value: a.id, selected: a.id === t.areaId }, a.name || "업무"));
-    opts.push(h("option", { value: "", selected: !areas.some(a => a.id === t.areaId) }, "미분류"));
-    const fArea = h("select", { id: "f-area" }, opts);
-    const fD = h("input", { id: "f-dday", type: "number", inputmode: "numeric", value: String(Number(t.dday) || 0), step: "1" });
-    const fDate = h("input", { id: "f-date", type: "date", disabled: !e });
+    const d0 = isNew ? (preset.due || isoOf(addDays(today(), 7))) : (dueOf(t) ? isoOf(dueOf(t)) : "");
+    t = t || { title: "", areaId: preset.areaId ?? (firstArea ? firstArea.id : ""), status: "todo", owner: "", note: "" };
+    const fTitle = h("input", { id: "f-title", type: "text", value: t.title, placeholder: "예: 포스터 시안 확정", maxlength: "80", required: true });
+    const fArea = areaSelect("f-area", t.areaId, "미분류");
+    const fDue = h("input", { id: "f-due", type: "date", value: d0 });
     const hint = h("span", { class: "hint" });
-    const syncFromD = () => { const n = Number(fD.value) || 0; hint.textContent = `${ddLabel(n)}${e ? " · " + fmt(addDays(e, -n)) : ""}  (행사 후 일은 음수, 예: -3)`; if (e) fDate.value = isoOf(addDays(e, -n)); };
-    fD.addEventListener("input", syncFromD);
-    fDate.addEventListener("change", () => { const d = parseDate(fDate.value); if (d && e) { fD.value = String(ddOf(d)); syncFromD(); } });
-    syncFromD();
+    const sync = () => { const d = parseDate(fDue.value); hint.textContent = d ? `${fmt(d)} · ${leftLabel(daysFromToday(d))}` : "마감일을 비워 두면 ‘마감 미정’으로 보여요."; };
+    fDue.addEventListener("change", sync); fDue.addEventListener("input", sync); sync();
     const fStatus = h("select", { id: "f-status" }, Object.entries(STATUS_LABEL).map(([k, l]) => h("option", { value: k, selected: k === (t.status || "todo") }, l)));
     const fOwner = h("input", { id: "f-owner", type: "text", value: t.owner || "", placeholder: "예: 김민지", maxlength: "30" });
     const fNote = h("textarea", { id: "f-note", placeholder: "업체 연락처, 결정 사항, 막힌 점 등", maxlength: "500" }, t.note || "");
-    const delBtn = isNew ? null : deleteButton(async () => {
-      if (await save(() => db.doc(P("tasks/" + t.id)).delete(), "삭제했어요")) closeSheet();
-    });
+    const delBtn = isNew ? null : deleteButton(async () => { if (await save(() => db.doc(P("tasks/" + t.id)).delete(), "삭제했어요")) closeSheet(); });
     const form = h("form", { class: "field", style: "gap:14px", onsubmit: async ev => {
       ev.preventDefault();
       const title = fTitle.value.trim(); if (!title) { fTitle.focus(); return; }
-      const body = { title, areaId: fArea.value, dday: Math.round(Number(fD.value) || 0), status: fStatus.value, owner: fOwner.value.trim(), note: fNote.value.trim(), updatedAt: Date.now() };
-      const ok = isNew
-        ? await save(() => db.collection(P("tasks")).add({ ...body, createdAt: Date.now() }), "추가했어요")
-        : await save(() => db.doc(P("tasks/" + t.id)).update(body), "저장했어요");
+      const body = { title, areaId: fArea.value, due: fDue.value, status: fStatus.value, owner: fOwner.value.trim(), note: fNote.value.trim(), updatedAt: Date.now() };
+      const ok = isNew ? await save(() => db.collection(P("tasks")).add({ ...body, createdAt: Date.now() }), "추가했어요")
+                       : await save(() => db.doc(P("tasks/" + t.id)).update(body), "저장했어요");
       if (ok) closeSheet();
     } },
       h("div", { class: "field" }, h("label", { for: "f-title" }, "할 일"), fTitle),
@@ -775,41 +785,37 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
         h("div", { class: "field" }, h("label", { for: "f-area" }, "업무"), fArea),
         h("div", { class: "field" }, h("label", { for: "f-owner" }, "담당자"), fOwner)),
       h("div", { class: "two" },
-        h("div", { class: "field" }, h("label", { for: "f-dday" }, "행사 며칠 전"), fD),
-        h("div", { class: "field" }, h("label", { for: "f-date" }, "마감 날짜"), fDate)),
+        h("div", { class: "field" }, h("label", { for: "f-due" }, "마감일"), fDue),
+        h("div", { class: "field" }, h("label", { for: "f-status" }, "상태"), fStatus)),
       hint,
-      h("div", { class: "field" }, h("label", { for: "f-status" }, "상태"), fStatus),
       h("div", { class: "field" }, h("label", { for: "f-note" }, "메모"), fNote),
-      h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), h("button", { type: "submit", class: "btn primary" }, isNew ? "추가하기" : "저장하기")));
+      formActions(delBtn, isNew, "추가하기"));
     lockIfReadOnly(form);
     openSheet(isNew ? "할 일 추가" : "할 일 수정", [form]);
   }
 
   function openPeriod(p) {
-    const e = eventDate();
-    if (!e) { openEventForm(curEvent()); return; }
     const isNew = !p;
-    p = p || { name: "", color: PCOLORS[periods.length % PCOLORS.length], startD: selDay ?? 14, endD: Math.max(0, (selDay ?? 14) - 6) };
+    const r = p ? rangeOf(p) : null;
+    const s0 = r ? r.s : (selDay ? parseDate(selDay) : today());
+    const e0 = r ? r.e : addDays(s0, 6);
+    p = p || { name: "", color: PCOLORS[periods.length % PCOLORS.length] };
     const fName = h("input", { id: "p-name", type: "text", value: p.name, placeholder: "예: 홍보 기간", maxlength: "20", required: true });
-    const fStart = h("input", { id: "p-start", type: "date", value: isoOf(addDays(e, -(Number(p.startD) || 0))) });
-    const fEnd = h("input", { id: "p-end", type: "date", value: isoOf(addDays(e, -(Number(p.endD) || 0))) });
+    const fStart = h("input", { id: "p-start", type: "date", value: isoOf(s0) });
+    const fEnd = h("input", { id: "p-end", type: "date", value: isoOf(e0) });
     const hint = h("span", { class: "hint" });
-    const sync = () => { const s = parseDate(fStart.value), en = parseDate(fEnd.value); hint.textContent = s && en ? (en < s ? "끝나는 날이 시작일보다 빨라요." : `${ddLabel(ddOf(s))} ~ ${ddLabel(ddOf(en))} · ${Math.round((en - s) / DAY) + 1}일`) : ""; };
+    const sync = () => { const s = parseDate(fStart.value), en = parseDate(fEnd.value); hint.textContent = s && en ? (en < s ? "끝나는 날이 시작일보다 빨라요." : `${fmt(s)} ~ ${fmt(en)} · ${Math.round((en - s) / DAY) + 1}일`) : ""; };
     fStart.addEventListener("change", () => { if (fEnd.value < fStart.value) fEnd.value = fStart.value; sync(); });
     fEnd.addEventListener("change", sync); sync();
-    const sw = h("div", { class: "swatches", role: "radiogroup", "aria-label": "막대 색" },
-      PCOLORS.map((k, i) => h("label", { style: `background:${pcolor(k)}`, title: `색 ${i + 1}` },
-        h("input", { type: "radio", name: "p-color", id: `p-color-${k}`, value: k, checked: k === (p.color || "p1"), "aria-label": `색 ${i + 1}` }))));
-    const delBtn = isNew ? null : deleteButton(async () => {
-      if (await save(() => db.doc(P("periods/" + p.id)).delete(), "기간을 삭제했어요")) closeSheet();
-    });
+    const sw = swatchPicker("p-color", PCOLORS.includes(p.color) ? p.color : "p1", "막대 색");
+    const delBtn = isNew ? null : deleteButton(async () => { if (await save(() => db.doc(P("periods/" + p.id)).delete(), "기간을 삭제했어요")) closeSheet(); });
     const form = h("form", { class: "field", style: "gap:14px", onsubmit: async ev => {
       ev.preventDefault();
       const name = fName.value.trim(); if (!name) { fName.focus(); return; }
       const s = parseDate(fStart.value), en = parseDate(fEnd.value);
       if (!s || !en || en < s) { fEnd.focus(); return; }
       const color = (sw.querySelector("input:checked") || {}).value || "p1";
-      const body = { name, color, startD: ddOf(s), endD: ddOf(en), updatedAt: Date.now() };
+      const body = { name, color, start: fStart.value, end: fEnd.value, updatedAt: Date.now() };
       const ok = isNew ? await save(() => db.collection(P("periods")).add({ ...body, createdAt: Date.now() }), "기간을 추가했어요")
                        : await save(() => db.doc(P("periods/" + p.id)).update(body), "기간을 저장했어요");
       if (ok) closeSheet();
@@ -820,9 +826,55 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
         h("div", { class: "field" }, h("label", { for: "p-start" }, "시작일"), fStart),
         h("div", { class: "field" }, h("label", { for: "p-end" }, "종료일"), fEnd)),
       hint,
-      h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), h("button", { type: "submit", class: "btn primary" }, isNew ? "추가하기" : "저장하기")));
+      formActions(delBtn, isNew, "추가하기"));
     lockIfReadOnly(form);
     openSheet(isNew ? "기간 추가" : "기간 수정", [form]);
+  }
+
+  function openBudgetTotal() {
+    const ev = curEvent();
+    const fTotal = moneyInput("b-total", ev.budgetTotal);
+    const form = h("form", { class: "field", style: "gap:14px", onsubmit: async e => {
+      e.preventDefault();
+      if (await save(() => db.doc("events/" + ev.id).update({ budgetTotal: parseMoney(fTotal.value), updatedAt: Date.now() }), "총 예산을 저장했어요")) closeSheet();
+    } },
+      h("div", { class: "field" }, h("label", { for: "b-total" }, "총 예산 (원)"), fTotal, h("span", { class: "hint" }, "행사에 쓸 수 있는 전체 금액이에요. 실제 지출과 비교해서 남은 예산을 보여줘요.")),
+      formActions(null, false, ""));
+    lockIfReadOnly(form);
+    openSheet("총 예산", [form]);
+  }
+
+  function openBudgetItem(b, presetArea) {
+    const isNew = !b;
+    b = b || { name: "", areaId: presetArea ?? "", planned: 0, actual: 0, paid: false, vendor: "", note: "" };
+    const fName = h("input", { id: "b-name", type: "text", value: b.name || "", placeholder: "예: 포스터 인쇄", maxlength: "60", required: true });
+    const fArea = areaSelect("b-area", b.areaId, "기타");
+    const fPlanned = moneyInput("b-planned", b.planned);
+    const fActual = moneyInput("b-actual", b.actual);
+    const fPaid = h("select", { id: "b-paid" }, h("option", { value: "no", selected: !b.paid }, "미결제"), h("option", { value: "yes", selected: !!b.paid }, "결제 완료"));
+    const fVendor = h("input", { id: "b-vendor", type: "text", value: b.vendor || "", placeholder: "예: ○○인쇄소", maxlength: "40" });
+    const fNote = h("textarea", { id: "b-note", placeholder: "견적 비교, 세금계산서 등", maxlength: "300" }, b.note || "");
+    const delBtn = isNew ? null : deleteButton(async () => { if (await save(() => db.doc(P("budget/" + b.id)).delete(), "항목을 삭제했어요")) closeSheet(); });
+    const form = h("form", { class: "field", style: "gap:14px", onsubmit: async e => {
+      e.preventDefault();
+      const name = fName.value.trim(); if (!name) { fName.focus(); return; }
+      const body = { name, areaId: fArea.value, planned: parseMoney(fPlanned.value), actual: parseMoney(fActual.value), paid: fPaid.value === "yes", vendor: fVendor.value.trim(), note: fNote.value.trim(), updatedAt: Date.now() };
+      const ok = isNew ? await save(() => db.collection(P("budget")).add({ ...body, createdAt: Date.now() }), "예산 항목을 추가했어요")
+                       : await save(() => db.doc(P("budget/" + b.id)).update(body), "저장했어요");
+      if (ok) closeSheet();
+    } },
+      h("div", { class: "field" }, h("label", { for: "b-name" }, "항목"), fName),
+      h("div", { class: "two" },
+        h("div", { class: "field" }, h("label", { for: "b-area" }, "업무"), fArea),
+        h("div", { class: "field" }, h("label", { for: "b-vendor" }, "업체"), fVendor)),
+      h("div", { class: "two" },
+        h("div", { class: "field" }, h("label", { for: "b-planned" }, "계획 금액 (원)"), fPlanned),
+        h("div", { class: "field" }, h("label", { for: "b-actual" }, "실제 지출 (원)"), fActual)),
+      h("div", { class: "field" }, h("label", { for: "b-paid" }, "결제"), fPaid),
+      h("div", { class: "field" }, h("label", { for: "b-note" }, "메모"), fNote),
+      formActions(delBtn, isNew, "추가하기"));
+    lockIfReadOnly(form);
+    openSheet(isNew ? "예산 항목 추가" : "예산 항목 수정", [form]);
   }
 
   // ---------- local storage (used outside claude.ai, e.g. GitHub Pages) ----------
@@ -851,10 +903,7 @@ button { touch-action: manipulation; -webkit-user-select: none; user-select: non
       get: async () => qsnap(c),
       onSnapshot: next => { const f = () => next(qsnap(c)); subs.add(f); setTimeout(f); return () => subs.delete(f); },
     });
-    return {
-      doc: p => { const i = p.lastIndexOf("/"); return docRef(p.slice(0, i), p.slice(i + 1)); },
-      collection: colRef,
-    };
+    return { doc: p => { const i = p.lastIndexOf("/"); return docRef(p.slice(0, i), p.slice(i + 1)); }, collection: colRef };
   }
 
   // ---------- boot ----------

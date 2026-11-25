@@ -30,7 +30,7 @@
   --late: #D2452F;
   --late-bg: #FBE9E5;
   --chip: #ECEEE8;
-  --p1: #3B6FD8; --p2: #2E8F63; --p3: #D46A22; --p4: #8457CB; --p5: #C9467B; --p6: #1B8794;  /* period bar colors, white text on all */
+  --p1: #3B6FD8; --p2: #2E8F63; --p3: #D46A22; --p4: #8457CB; --p5: #C9467B; --p6: #1B8794; --p7: #A07A0C; --p8: #5A6878;  /* area + period colors, white text on all */
   --shadow: 0 1px 2px rgba(24,34,45,.06), 0 6px 20px rgba(24,34,45,.06);
   --f-body: "IBM Plex Sans KR", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   --f-num: "Space Grotesk", "IBM Plex Sans KR", ui-monospace, sans-serif;
@@ -81,7 +81,7 @@ button { cursor: pointer; }
 .list { display: grid; gap: 8px; }
 .task { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px 10px 10px; }
 .card .task { background: var(--bg); }
-.task.is-late { border-color: var(--late); background: linear-gradient(90deg, var(--late-bg), var(--surface) 60%); }
+.task.is-late { border-color: var(--late); border-left-color: var(--ac, var(--late)); background: linear-gradient(90deg, var(--late-bg), var(--surface) 60%); }
 .task.is-done .t-title { color: var(--muted); text-decoration: line-through; }
 .st { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); display: grid; place-items: center; padding: 0; }
 .st svg { width: 16px; height: 16px; }
@@ -175,8 +175,8 @@ button { cursor: pointer; }
 .day.event .n { background: var(--tape); color: var(--tape-ink); font-weight: 700; }
 .day.sel { background: var(--chip); }
 .dots { display: flex; gap: 2px; height: 6px; align-items: center; }
-.dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
-.dots i.doing { background: var(--doing); } .dots i.done { background: var(--done); } .dots i.late { background: var(--late); }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--ac, var(--muted)); }
+.dots i.done { opacity: .35; } .dots i.late { box-shadow: 0 0 0 1.5px var(--surface), 0 0 0 3px var(--late); }
 .dots b { font-size: 8px; color: var(--muted); font-weight: 600; line-height: 1; }
 .pbar { height: 18px; border-radius: 5px; color: #fff; font-size: 10.5px; font-weight: 600; line-height: 18px; padding: 0 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 0; text-align: left; margin: 0 2px; min-width: 0; }
 .pbar.cl { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
@@ -196,6 +196,44 @@ button { cursor: pointer; }
 .swatches input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
 .swatches label:has(input:checked) { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--ink); }
 .swatches label:has(input:focus-visible) { outline: 2px solid var(--doing); outline-offset: 4px; }
+
+/* Area colors */
+.task { border-left: 6px solid var(--ac, var(--line)); }
+.pill.area { background: color-mix(in srgb, var(--ac) 16%, transparent); color: var(--ac); font-weight: 700; }
+.topstrip { display: flex; align-items: center; gap: 8px; }
+.area-legend { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 0; }
+.area-legend::-webkit-scrollbar { display: none; }
+.area-chip { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 10px 4px 8px; border-radius: 99px; background: color-mix(in srgb, var(--ac) 15%, var(--surface)); color: var(--ink); border: 1px solid color-mix(in srgb, var(--ac) 35%, transparent); white-space: nowrap; }
+.area-chip i { width: 10px; height: 10px; border-radius: 50%; background: var(--ac); }
+.area-card { border-top: 6px solid var(--ac); background: linear-gradient(180deg, color-mix(in srgb, var(--ac) 9%, var(--surface)), var(--surface) 70px); scroll-margin-top: 12px; }
+.area-name .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ac); flex: none; }
+
+/* View size toggle */
+.vtoggle { flex: none; display: inline-flex; gap: 2px; background: var(--chip); padding: 3px; border-radius: 10px; margin-left: auto; }
+.vtoggle button { border: 0; background: none; padding: 5px 10px; border-radius: 8px; font-size: 12px; color: var(--muted); }
+.vtoggle button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 700; box-shadow: var(--shadow); }
+body.v-big .task { padding: 14px 14px 14px 12px; grid-template-columns: 40px 1fr; gap: 12px; border-left-width: 9px; }
+body.v-big .st { width: 40px; height: 40px; }
+body.v-big .t-title { font-size: 18px; }
+body.v-big .t-meta { font-size: 13px; }
+body.v-big .t-meta .d { font-size: 15px; }
+body.v-big .t-extra, body.v-big .t-note { display: none; }
+body.v-big .area-name { font-size: 19px; }
+body.v-big .area-chip { font-size: 13px; padding: 6px 12px 6px 10px; }
+body.v-detail .task { padding: 8px 10px 8px 8px; }
+body.v-detail .t-title { font-size: 14px; }
+
+/* Calendar: big dots or detailed title chips */
+body.v-big .day { min-height: 56px; }
+body.v-big .day .n { font-size: 15px; width: 30px; height: 30px; }
+body.v-big .dots { height: 9px; gap: 3px; }
+body.v-big .dots i { width: 8px; height: 8px; }
+body.v-detail .day { min-height: 80px; }
+.cchips { display: grid; gap: 2px; width: 100%; padding: 0 1px; }
+.cchip { display: block; font-size: 9.5px; line-height: 14px; height: 14px; padding: 0 2px; border-radius: 3px; background: color-mix(in srgb, var(--ac) 24%, var(--surface)); border-left: 2px solid var(--ac); white-space: nowrap; overflow: hidden; text-align: left; color: var(--ink); }
+.cchip.done { opacity: .45; text-decoration: line-through; }
+.cchip.late { box-shadow: inset 0 0 0 1px var(--late); }
+.cmore { font-size: 9px; color: var(--muted); line-height: 1; }
 
 .toast { position: fixed; z-index: 50; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-size: 13px; max-width: calc(100% - 32px); }
 
@@ -236,9 +274,10 @@ button { cursor: pointer; }
   const STATUS_LABEL = { todo: "할 일", doing: "진행 중", done: "완료" };
   const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
   const DAY = 86400000;
-  const PCOLORS = ["p1", "p2", "p3", "p4", "p5", "p6"];
+  const PCOLORS = ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8"];
   const pcolor = k => `var(--${PCOLORS.includes(k) ? k : "p1"})`;
-  const FOCUS_KEY = "event-prep-focus";
+  const FOCUS_KEY = "event-prep-focus", VIEW_KEY = "event-prep-view";
+  let view = (() => { try { return localStorage.getItem(VIEW_KEY) === "detail" ? "detail" : "big"; } catch (e) { return "big"; } })();
 
   let db = null, localMode = false, readOnly = false, noStore = false;
   let events = [], cur = null, areas = [], tasks = [], periods = [];
@@ -274,6 +313,21 @@ button { cursor: pointer; }
   function sortTasks(a, b) { return (Number(b.dday) || 0) - (Number(a.dday) || 0) || String(a.title).localeCompare(String(b.title), "ko"); }
   function sortedAreas() { return areas.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); }
   function areaName(id) { const a = areas.find(x => x.id === id); return a ? a.name || "업무" : "미분류"; }
+  function areaColorKey(id) {
+    const list = sortedAreas(), i = list.findIndex(a => a.id === id);
+    if (i < 0) return null;
+    return PCOLORS.includes(list[i].color) ? list[i].color : PCOLORS[i % PCOLORS.length];
+  }
+  const acVar = id => { const k = areaColorKey(id); return k ? `var(--${k})` : "var(--muted)"; };
+  function swatchPicker(name, current, label) {
+    return h("div", { class: "swatches", role: "radiogroup", "aria-label": label },
+      PCOLORS.map((k, i) => h("label", { style: `background:${pcolor(k)}`, title: `색 ${i + 1}` },
+        h("input", { type: "radio", name, id: `${name}-${k}`, value: k, checked: k === current, "aria-label": `색 ${i + 1}` }))));
+  }
+  function goToArea(id) {
+    setTab("area");
+    setTimeout(() => { const el = document.getElementById("area-" + id); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 30);
+  }
   function periodsOn(dd) { return periods.filter(p => dd <= Number(p.startD) && dd >= Number(p.endD)); }
   function ptags(list) { return list.length ? h("span", { class: "ptags" }, list.map(p => h("span", { class: "ptag", style: `background:${pcolor(p.color)}` }, p.name || "기간"))) : null; }
   function toast(msg) { const el = h("div", { class: "toast", role: "status" }, msg); document.body.append(el); setTimeout(() => el.remove(), 2200); }
@@ -326,15 +380,15 @@ button { cursor: pointer; }
   // ---------- shared pieces ----------
   function taskRow(t, opts = {}) {
     const late = isLate(t), due = dueOf(t), st = t.status || "todo";
-    return h("div", { class: `task${late ? " is-late" : ""}${st === "done" ? " is-done" : ""}` },
+    return h("div", { class: `task${late ? " is-late" : ""}${st === "done" ? " is-done" : ""}`, style: `--ac:${acVar(t.areaId)}` },
       h("button", { type: "button", class: `st ${st}`, "aria-label": `상태: ${STATUS_LABEL[st]} (눌러서 바꾸기)`, onclick: () => cycleStatus(t) }, st === "done" ? svg('<path d="M5 12l5 5 9-10"/>') : null),
       h("button", { type: "button", class: "t-body", onclick: () => openTask(t) },
         h("span", { class: "t-title" }, t.title || "(제목 없음)"),
         h("span", { class: "t-meta" },
           h("span", { class: "d" }, ddLabel(t.dday)),
           due ? h("span", null, fmt(due)) : null,
-          opts.hideArea ? null : h("span", { class: "pill" }, areaName(t.areaId)),
-          t.owner ? h("span", null, "· " + t.owner) : null,
+          opts.hideArea ? null : h("span", { class: "pill area" }, areaName(t.areaId)),
+          t.owner ? h("span", { class: "t-extra" }, "· " + t.owner) : null,
           late ? h("span", { class: "pill late" }, "기한 지남") : st === "doing" ? h("span", { class: "pill doing" }, "진행 중") : null),
         t.note ? h("span", { class: "t-note" }, t.note) : null));
   }
@@ -350,6 +404,14 @@ button { cursor: pointer; }
         events.length > 1 ? h("span", { class: "ev-count" }, events.length + "개") : null,
         svg('<path d="M6 9l6 6 6-6"/>', 2.4)),
       canWrite() ? h("button", { type: "button", class: "btn small", onclick: () => openEventForm(null) }, "+ 새 행사") : null);
+  }
+  function topStrip() {
+    const legend = sortedAreas().map(a => h("button", { type: "button", class: "area-chip", style: `--ac:${acVar(a.id)}`, onclick: () => goToArea(a.id) },
+      h("i"), a.name || "업무"));
+    const toggle = h("div", { class: "vtoggle", role: "group", "aria-label": "보기 크기" },
+      [["big", "크게"], ["detail", "자세히"]].map(([k, l]) => h("button", { type: "button", "aria-pressed": String(view === k),
+        onclick: () => { view = k; try { localStorage.setItem(VIEW_KEY, k); } catch (e) {} render(); } }, l)));
+    return h("div", { class: "topstrip" }, legend.length ? h("div", { class: "area-legend", "aria-label": "업무 색" }, legend) : null, toggle);
   }
   function hero() {
     const ev = curEvent(), dl = daysLeft(), e = eventDate();
@@ -418,9 +480,14 @@ button { cursor: pointer; }
       for (let i = 0; i < 7; i++) {
         const d = addDays(ws, i), dd = ddOf(d), items = byDay[dd] || [];
         const inRange = d >= first && d <= last;
-        const dots = h("span", { class: "dots", "aria-hidden": "true" },
-          items.slice(0, 3).map(t => h("i", { class: isLate(t) ? "late" : t.status || "todo" })),
-          items.length > 3 ? h("b", null, "+" + (items.length - 3)) : null);
+        const ordered = items.slice().sort((a, b) => (a.status === "done") - (b.status === "done"));
+        const dots = view === "detail"
+          ? h("span", { class: "cchips", "aria-hidden": "true" },
+              ordered.slice(0, 3).map(t => h("span", { class: `cchip${t.status === "done" ? " done" : ""}${isLate(t) ? " late" : ""}`, style: `--ac:${acVar(t.areaId)}` }, t.title || "")),
+              ordered.length > 3 ? h("span", { class: "cmore" }, "+" + (ordered.length - 3)) : null)
+          : h("span", { class: "dots", "aria-hidden": "true" },
+              ordered.slice(0, 4).map(t => h("i", { class: t.status === "done" ? "done" : isLate(t) ? "late" : "", style: `--ac:${acVar(t.areaId)}` })),
+              ordered.length > 4 ? h("b", null, "+" + (ordered.length - 4)) : null);
         week.append(h("button", {
           type: "button", role: "gridcell",
           class: `day${i === 0 ? " sun" : ""}${inRange ? "" : " out"}${dd === dl ? " today" : ""}${dd === 0 ? " event" : ""}${dd === selDay ? " sel" : ""}`,
@@ -450,11 +517,11 @@ button { cursor: pointer; }
       }
       cal.append(week);
     }
-    cal.append(h("div", { class: "cal-legend", "aria-hidden": "true" },
-      h("span", null, h("span", { class: "dots" }, h("i", { class: "todo" })), "할 일"),
-      h("span", null, h("span", { class: "dots" }, h("i", { class: "doing" })), "진행 중"),
-      h("span", null, h("span", { class: "dots" }, h("i", { class: "done" })), "완료"),
-      h("span", null, h("span", { class: "dots" }, h("i", { class: "late" })), "기한 지남")));
+    cal.append(h("div", { class: "cal-legend" },
+      h("span", null, view === "detail" ? "칸 색 = 업무" : "점 색 = 업무"),
+      h("span", null, "흐리게 = 완료"),
+      h("span", { style: "color:var(--late)" }, "빨간 테두리 = 기한 지남"),
+      h("span", null, view === "detail" ? "‘크게’로 바꾸면 한눈에 보여요" : "‘자세히’로 바꾸면 할 일 이름이 보여요")));
 
     const selDate = addDays(e, -selDay), selTasks = (byDay[selDay] || []).slice().sort(sortTasks);
     const daySec = h("section", { class: "list" },
@@ -513,10 +580,10 @@ button { cursor: pointer; }
     const cards = groups.map(({ a, all }) => {
       const items = all.filter(pass).sort(sortTasks);
       const owners = [...new Set(all.map(t => t.owner).filter(Boolean))];
-      return h("section", { class: "card" },
+      return h("section", { class: "card area-card", id: a ? "area-" + a.id : "area-none", style: `--ac:${a ? acVar(a.id) : "var(--muted)"}` },
         h("div", { class: "area-head" },
-          a ? h("button", { type: "button", class: "area-name", onclick: () => openArea(a), "aria-label": `${a.name} 업무 이름 바꾸기` }, h("span", null, a.name || "업무"), svg('<path d="M4 20h4L19 9l-4-4L4 16z"/>', 2))
-            : h("span", { class: "area-name" }, h("span", null, "미분류")),
+          a ? h("button", { type: "button", class: "area-name", onclick: () => openArea(a), "aria-label": `${a.name} 업무 이름·색 바꾸기` }, h("i", { class: "dot" }), h("span", null, a.name || "업무"), svg('<path d="M4 20h4L19 9l-4-4L4 16z"/>', 2))
+            : h("span", { class: "area-name" }, h("i", { class: "dot" }), h("span", null, "미분류")),
           h("span", { class: "area-sub" }, `할 일 ${all.length}개`)),
         owners.length ? h("span", { class: "area-sub" }, "담당: " + owners.join(", ")) : null,
         list(items, { hideArea: true }, statusFilter === "done" ? "완료한 일이 없어요." : statusFilter === "open" && all.length ? "남은 일이 없어요." : "아직 할 일이 없어요."),
@@ -535,7 +602,10 @@ button { cursor: pointer; }
     document.querySelectorAll(".nav button").forEach(b => b.dataset.tab === tab ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
     if (!eventsLoaded) { app.append(h("div", { class: "loading", "aria-label": "불러오는 중" }, h("div"), h("div"), h("div"))); return; }
     if (!events.length || !curEvent()) { app.append(starter()); return; }
+    document.body.classList.toggle("v-big", view === "big");
+    document.body.classList.toggle("v-detail", view === "detail");
     app.append(eventBar());
+    if (evLoaded) app.append(topStrip());
     if (!evLoaded) { app.append(h("div", { class: "loading", "aria-label": "불러오는 중" }, h("div"), h("div"))); return; }
     const v = tab === "plan" ? viewPlan() : tab === "area" ? viewArea() : viewHome();
     app.append(...v.filter(Boolean));
@@ -625,6 +695,9 @@ button { cursor: pointer; }
   function openArea(a) {
     const isNew = !a;
     const fName = h("input", { id: "a-name", type: "text", value: a ? a.name || "" : "", placeholder: "예: 홍보, 장소, 섭외", maxlength: "20", required: true });
+    const used = new Set(sortedAreas().map(x => areaColorKey(x.id)));
+    const curColor = a ? areaColorKey(a.id) : (PCOLORS.find(k => !used.has(k)) || PCOLORS[areas.length % PCOLORS.length]);
+    const sw = swatchPicker("a-color", curColor, "업무 색");
     const count = a ? tasks.filter(t => t.areaId === a.id).length : 0;
     const delBtn = isNew ? null : deleteButton(async () => {
       if (await save(() => db.doc(P("areas/" + a.id)).delete(), "업무를 삭제했어요")) closeSheet();
@@ -632,11 +705,13 @@ button { cursor: pointer; }
     const form = h("form", { class: "field", style: "gap:14px", onsubmit: async e => {
       e.preventDefault();
       const name = fName.value.trim(); if (!name) { fName.focus(); return; }
-      const ok = isNew ? await save(() => db.collection(P("areas")).add({ name, createdAt: Date.now() }), "업무를 만들었어요")
-                       : await save(() => db.doc(P("areas/" + a.id)).update({ name }), "업무 이름을 바꿨어요");
+      const color = (sw.querySelector("input:checked") || {}).value || curColor;
+      const ok = isNew ? await save(() => db.collection(P("areas")).add({ name, color, createdAt: Date.now() }), "업무를 만들었어요")
+                       : await save(() => db.doc(P("areas/" + a.id)).update({ name, color }), "업무를 저장했어요");
       if (ok) closeSheet();
     } },
       h("div", { class: "field" }, h("label", { for: "a-name" }, "업무 이름"), fName),
+      h("div", { class: "field" }, h("span", { class: "lab" }, "업무 색"), sw, h("span", { class: "hint" }, "이 업무의 할 일이 목록과 달력에서 이 색으로 보여요.")),
       !isNew && count ? h("span", { class: "hint" }, `업무를 삭제해도 할 일 ${count}개는 남고 ‘미분류’로 옮겨져요.`) : null,
       h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), h("button", { type: "submit", class: "btn primary" }, isNew ? "만들기" : "저장하기")));
     lockIfReadOnly(form);

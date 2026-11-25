@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
 <style>
-/* Layout: single-column mobile run sheet — D-day hero, phase timeline, bottom tab bar + add button */
+/* Layout: single-column mobile run sheet — event switcher, D-day hero, focus list, bottom tab bar */
 :root {
   --bg: #F3F4F0;
   --surface: #FFFFFF;
@@ -51,9 +51,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--doing); outline-offset: 2px; }
 
-.wrap { max-width: 560px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px calc(120px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 18px; }
+.wrap { max-width: 560px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px calc(96px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 18px; }
 
-.notice { font-size: 13px; color: var(--muted); background: var(--chip); border-radius: 10px; padding: 10px 12px; }
+.notice { font-size: 13px; color: var(--muted); background: var(--chip); border-radius: 10px; padding: 10px 12px; margin: 0; }
+
+/* Event switcher */
+.evbar { display: flex; align-items: center; gap: 8px; }
+.ev-switch { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 8px 12px; text-align: left; }
+.ev-switch .lbl { font-size: 11px; color: var(--muted); flex: none; }
+.ev-switch .nm { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.ev-switch svg { width: 16px; height: 16px; flex: none; margin-left: auto; color: var(--muted); }
+.ev-count { font-family: var(--f-num); font-size: 11px; background: var(--chip); color: var(--muted); border-radius: 99px; padding: 0 7px; flex: none; }
 
 /* Hero */
 .hero { background: var(--ink); color: var(--bg); border-radius: 18px; padding: 18px 18px 16px; display: grid; gap: 10px; position: relative; overflow: hidden; border: 0; text-align: left; width: 100%; }
@@ -65,27 +73,14 @@ button { cursor: pointer; }
 .hero .row { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .hero .edit { font-size: 12px; opacity: .7; text-decoration: underline; text-underline-offset: 3px; }
 
-/* Progress */
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
-.sec-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0; font-size: 15px; font-weight: 700; }
+.sec-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; font-size: 15px; font-weight: 700; }
 .sec-title small { font-weight: 500; color: var(--muted); font-size: 12px; }
-.bar { height: 8px; background: var(--chip); border-radius: 99px; overflow: hidden; display: flex; }
-.bar i { display: block; height: 100%; }
-.bar .b-done { background: var(--done); }
-.bar .b-doing { background: var(--doing); }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.stat { display: grid; gap: 2px; }
-.stat b { font-family: var(--f-num); font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.1; }
-.stat span { font-size: 12px; color: var(--muted); }
-.stat.late b { color: var(--late); }
-
-.area-row { display: grid; grid-template-columns: 92px 1fr 44px; align-items: center; gap: 10px; padding: 6px 0; background: none; border: 0; text-align: left; width: 100%; }
-.area-row .name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.area-row .pct { font-family: var(--f-num); font-size: 13px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 /* Task list */
 .list { display: grid; gap: 8px; }
 .task { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px 10px 10px; }
+.card .task { background: var(--bg); }
 .task.is-late { border-color: var(--late); background: linear-gradient(90deg, var(--late-bg), var(--surface) 60%); }
 .task.is-done .t-title { color: var(--muted); text-decoration: line-through; }
 .st { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); display: grid; place-items: center; padding: 0; }
@@ -101,7 +96,10 @@ button { cursor: pointer; }
 .pill.late { background: var(--late); color: #fff; }
 .pill.doing { background: var(--doing); color: #fff; }
 .t-note { font-size: 12px; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
-.empty { color: var(--muted); font-size: 13px; padding: 6px 2px; }
+.empty { color: var(--muted); font-size: 13px; padding: 6px 2px; margin: 0; }
+.starter { display: grid; gap: 12px; justify-items: start; }
+.starter h2 { margin: 0; font-size: 17px; }
+.starter p { margin: 0; color: var(--muted); font-size: 14px; }
 
 /* Phase timeline */
 .phase { display: grid; gap: 8px; position: relative; padding-left: 18px; }
@@ -113,25 +111,25 @@ button { cursor: pointer; }
 .phase-head h3 { margin: 0; font-size: 16px; }
 .phase-head .range { font-size: 12px; color: var(--muted); font-family: var(--f-num); }
 .phase-head .now-tag { font-size: 11px; font-weight: 700; background: var(--tape); color: var(--tape-ink); padding: 1px 8px; border-radius: 4px; }
-.phase-head .cnt { margin-left: auto; font-size: 12px; color: var(--muted); font-family: var(--f-num); }
 
-/* Area filter */
-.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
-.chips::-webkit-scrollbar { display: none; }
-.chip { flex: none; border: 1px solid var(--line); background: var(--surface); padding: 6px 12px; border-radius: 99px; font-size: 13px; white-space: nowrap; }
-.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .seg { display: flex; gap: 4px; background: var(--chip); padding: 3px; border-radius: 10px; }
 .seg button { flex: 1; border: 0; background: none; padding: 6px 0; border-radius: 8px; font-size: 13px; color: var(--muted); }
 .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: var(--shadow); }
 
-/* Bottom nav + FAB */
+/* Area cards */
+.area-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.area-name { border: 0; background: none; padding: 0; font-size: 16px; font-weight: 700; text-align: left; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.area-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.area-name svg { width: 14px; height: 14px; color: var(--muted); flex: none; }
+.area-sub { font-size: 12px; color: var(--muted); }
+.add-line { border: 1px dashed var(--line); background: none; border-radius: 12px; padding: 10px; color: var(--muted); font-weight: 600; font-size: 14px; }
+
+/* Bottom nav */
 .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface); border-top: 1px solid var(--line); padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); }
 .nav-in { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
 .nav button { border: 0; background: none; padding: 10px 0 9px; display: grid; justify-items: center; gap: 2px; font-size: 11px; color: var(--muted); }
 .nav button svg { width: 22px; height: 22px; }
 .nav button[aria-current="page"] { color: var(--ink); font-weight: 700; }
-.fab { position: fixed; z-index: 21; right: max(16px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); height: 52px; padding: 0 20px 0 16px; border-radius: 26px; border: 0; background: var(--tape); color: var(--tape-ink); font-weight: 700; display: flex; align-items: center; gap: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
-.fab svg { width: 20px; height: 20px; }
 
 /* Sheet */
 .backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(10,14,18,.45); display: flex; align-items: flex-end; justify-content: center; }
@@ -139,18 +137,29 @@ button { cursor: pointer; }
 .grip { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 4px auto 0; }
 .sheet h2 { margin: 0; font-size: 18px; }
 .field { display: grid; gap: 6px; }
-.field label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.field label, .field .lab { font-size: 13px; font-weight: 600; color: var(--muted); }
 .field input, .field select, .field textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 11px 12px; font-size: 16px; }
 .field textarea { min-height: 72px; resize: vertical; }
-.field .hint { font-size: 12px; color: var(--muted); }
+.hint { font-size: 12px; color: var(--muted); }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .two > * { min-width: 0; }
 .actions { display: flex; gap: 8px; }
 .btn { flex: 1; border: 1px solid var(--line); background: var(--surface); padding: 13px; border-radius: 12px; font-weight: 600; }
 .btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.tape { background: var(--tape); color: var(--tape-ink); border-color: var(--tape); }
 .btn.danger { color: var(--late); border-color: var(--late); flex: none; padding-inline: 16px; }
 .btn.danger.armed { background: var(--late); color: #fff; }
+.btn.small { flex: none; padding: 7px 12px; font-size: 13px; border-radius: 10px; }
 .btn[disabled] { opacity: .5; }
+
+/* Event list rows */
+.ev-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 4px 6px 4px 4px; }
+.ev-row.cur { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.ev-main { border: 0; background: none; text-align: left; padding: 8px; display: grid; gap: 2px; min-width: 0; border-radius: 8px; }
+.ev-main .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-main .mt { font-size: 12px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ev-main .dd { font-family: var(--f-num); font-weight: 700; color: var(--ink); }
+.now-tag { font-size: 11px; font-weight: 700; background: var(--tape); color: var(--tape-ink); padding: 1px 8px; border-radius: 4px; }
 
 /* Calendar */
 .cal { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 6px 4px 4px; display: grid; }
@@ -187,9 +196,8 @@ button { cursor: pointer; }
 .swatches input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
 .swatches label:has(input:checked) { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--ink); }
 .swatches label:has(input:focus-visible) { outline: 2px solid var(--doing); outline-offset: 4px; }
-.btn.small { flex: none; padding: 8px 12px; font-size: 13px; border-radius: 10px; }
 
-.toast { position: fixed; z-index: 50; left: 50%; transform: translateX(-50%); bottom: calc(140px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-size: 13px; max-width: calc(100% - 32px); }
+.toast { position: fixed; z-index: 50; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-size: 13px; max-width: calc(100% - 32px); }
 
 .loading { display: grid; gap: 8px; }
 .loading div { height: 54px; border-radius: 12px; background: var(--chip); }
@@ -205,19 +213,17 @@ button { cursor: pointer; }
 <nav class="nav" aria-label="화면 전환">
   <div class="nav-in">
     <button type="button" id="nav-home" data-tab="home" aria-current="page">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>오늘</button>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>지금 집중</button>
     <button type="button" id="nav-plan" data-tab="plan">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>한 달 플랜</button>
     <button type="button" id="nav-area" data-tab="area">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>업무별</button>
   </div>
 </nav>
-<button type="button" class="fab" id="fab-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>할 일 추가</button>
 <div id="sheet-root"></div>
 
 <script>
 (() => {
-  const AREAS = ["기획·총괄", "장소·시설", "섭외·연사", "홍보·마케팅", "물품·디자인", "예산·정산", "인력·운영"];
   const PHASES = [
     { key: "w4", label: "한 달 전", min: 22, max: 9999 },
     { key: "w3", label: "3주 전", min: 15, max: 21 },
@@ -230,12 +236,14 @@ button { cursor: pointer; }
   const STATUS_LABEL = { todo: "할 일", doing: "진행 중", done: "완료" };
   const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
   const DAY = 86400000;
-
-  let localMode = false;
-  let db = null, info = {}, tasks = [], periods = [], loaded = false, stale = false, readOnly = false, offline = false;
-  let tab = "home", areaFilter = "전체", statusFilter = "open", planMode = "cal", selDay = null;
   const PCOLORS = ["p1", "p2", "p3", "p4", "p5", "p6"];
   const pcolor = k => `var(--${PCOLORS.includes(k) ? k : "p1"})`;
+  const FOCUS_KEY = "event-prep-focus";
+
+  let db = null, localMode = false, readOnly = false, noStore = false;
+  let events = [], cur = null, areas = [], tasks = [], periods = [];
+  let eventsLoaded = false, evLoaded = false, stale = false, unsubs = [];
+  let tab = "home", statusFilter = "open", planMode = "cal", selDay = null;
 
   // ---------- helpers ----------
   function h(tag, attrs, ...kids) {
@@ -249,42 +257,73 @@ button { cursor: pointer; }
     for (const k of kids.flat()) if (k != null && k !== false) el.append(k.nodeType ? k : document.createTextNode(String(k)));
     return el;
   }
-  const svg = (inner) => { const t = document.createElement("template"); t.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`; return t.content.firstChild; };
+  const svg = (inner, w = 3) => { const t = document.createElement("template"); t.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`; return t.content.firstChild; };
   function parseDate(s) { if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null; const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
   function today() { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
-  function eventDate() { return parseDate(info.date); }
-  function daysLeft() { const e = eventDate(); return e ? Math.round((e - today()) / DAY) : null; }
-  function dueOf(t) { const e = eventDate(); return e ? new Date(e.getTime() - (Number(t.dday) || 0) * DAY) : null; }
+  function curEvent() { return events.find(e => e.id === cur) || null; }
+  function evDays(ev) { const d = parseDate(ev && ev.date); return d ? Math.round((d - today()) / DAY) : null; }
+  function eventDate() { const e = curEvent(); return e ? parseDate(e.date) : null; }
+  function daysLeft() { return evDays(curEvent()); }
+  function dueOf(t) { const e = eventDate(); return e ? addDays(e, -(Number(t.dday) || 0)) : null; }
   function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
-  function ddOf(d) { const e = eventDate(); return Math.round((e - d) / DAY); }
+  function ddOf(d) { return Math.round((eventDate() - d) / DAY); }
   function isoOf(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
-  function periodsOn(dd) { return periods.filter(p => dd <= Number(p.startD) && dd >= Number(p.endD)); }
-  function ptags(list) { return list.length ? h("span", { class: "ptags" }, list.map(p => h("span", { class: "ptag", style: `background:${pcolor(p.color)}` }, p.name || "기간"))) : null; }
   function fmt(d) { return `${d.getMonth() + 1}/${d.getDate()}(${WEEK[d.getDay()]})`; }
   function ddLabel(n) { n = Number(n) || 0; return n > 0 ? `D-${n}` : n === 0 ? "D-DAY" : `D+${-n}`; }
   function isLate(t) { const dl = daysLeft(); return dl != null && t.status !== "done" && (Number(t.dday) || 0) > dl; }
   function sortTasks(a, b) { return (Number(b.dday) || 0) - (Number(a.dday) || 0) || String(a.title).localeCompare(String(b.title), "ko"); }
-  function areaList() { const s = new Set(AREAS); tasks.forEach(t => t.area && s.add(t.area)); return [...s]; }
+  function sortedAreas() { return areas.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); }
+  function areaName(id) { const a = areas.find(x => x.id === id); return a ? a.name || "업무" : "미분류"; }
+  function periodsOn(dd) { return periods.filter(p => dd <= Number(p.startD) && dd >= Number(p.endD)); }
+  function ptags(list) { return list.length ? h("span", { class: "ptags" }, list.map(p => h("span", { class: "ptag", style: `background:${pcolor(p.color)}` }, p.name || "기간"))) : null; }
   function toast(msg) { const el = h("div", { class: "toast", role: "status" }, msg); document.body.append(el); setTimeout(() => el.remove(), 2200); }
-  function counts(list) { const c = { todo: 0, doing: 0, done: 0, late: 0 }; list.forEach(t => { c[t.status in c ? t.status : "todo"]++; if (isLate(t)) c.late++; }); return c; }
+  const P = c => `events/${cur}/${c}`;
+  const canWrite = () => !!db && !readOnly && !noStore;
+  function getFocus() { try { return localStorage.getItem(FOCUS_KEY); } catch (e) { return null; } }
+  function setFocus(id) { try { id ? localStorage.setItem(FOCUS_KEY, id) : localStorage.removeItem(FOCUS_KEY); } catch (e) {} }
 
   // ---------- data ----------
   async function save(fn, okMsg) {
-    if (!db || readOnly) { toast(offline ? "로그인해야 저장할 수 있어요" : "보기 전용이라 수정할 수 없어요"); return false; }
-    try { await fn(); if (okMsg) toast(okMsg); return true; }
+    if (!canWrite()) { toast(noStore ? "로그인해야 저장할 수 있어요" : "보기 전용이라 수정할 수 없어요"); return false; }
+    try { const r = await fn(); if (okMsg) toast(okMsg); return r === undefined ? true : r; }
     catch (e) {
       if (e && e.code === "invalid_argument") { readOnly = true; toast("이 링크는 보기 전용이에요. 편집 권한을 요청하세요."); render(); }
-      else if (e && e.code === "quota_exceeded") toast("저장 공간이 가득 찼어요. 완료된 일을 정리해 주세요.");
+      else if (e && e.code === "quota_exceeded") toast("저장 공간이 가득 찼어요. 지난 행사를 정리해 주세요.");
       else toast("저장하지 못했어요. 잠시 후 다시 시도해 주세요.");
       return false;
     }
   }
   function cycleStatus(t) {
     const next = STATUS_NEXT[t.status] || "doing";
-    save(() => db.doc("tasks/" + t.id).update({ status: next, updatedAt: Date.now() }));
+    save(() => db.doc(P("tasks/" + t.id)).update({ status: next, updatedAt: Date.now() }));
+  }
+  function pickEvent() {
+    if (cur && events.some(e => e.id === cur)) return cur;
+    const f = getFocus(); if (f && events.some(e => e.id === f)) return f;
+    const up = events.filter(e => { const d = evDays(e); return d != null && d >= -3; }).sort((a, b) => evDays(a) - evDays(b));
+    if (up.length) return up[0].id;
+    const r = events.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return r[0] ? r[0].id : null;
+  }
+  function switchEvent(id) {
+    unsubs.forEach(u => u()); unsubs = [];
+    cur = id; selDay = null; areas = []; tasks = []; periods = [];
+    if (id) setFocus(id);
+    evLoaded = !id;
+    if (id) {
+      let got = 0;
+      const sub = (name, assign) => {
+        let first = true;
+        const mark = () => { if (first) { first = false; if (++got === 3) evLoaded = true; } };
+        unsubs.push(db.collection(P(name)).onSnapshot(s => { assign(s.docs.map(d => ({ id: d.id, ...d.data() }))); mark(); render(); },
+          () => { mark(); stale = true; render(); }));
+      };
+      sub("areas", v => areas = v); sub("tasks", v => tasks = v); sub("periods", v => periods = v);
+    }
+    render();
   }
 
-  // ---------- views ----------
+  // ---------- shared pieces ----------
   function taskRow(t, opts = {}) {
     const late = isLate(t), due = dueOf(t), st = t.status || "todo";
     return h("div", { class: `task${late ? " is-late" : ""}${st === "done" ? " is-done" : ""}` },
@@ -294,7 +333,7 @@ button { cursor: pointer; }
         h("span", { class: "t-meta" },
           h("span", { class: "d" }, ddLabel(t.dday)),
           due ? h("span", null, fmt(due)) : null,
-          opts.hideArea ? null : h("span", { class: "pill" }, t.area || "기타"),
+          opts.hideArea ? null : h("span", { class: "pill" }, areaName(t.areaId)),
           t.owner ? h("span", null, "· " + t.owner) : null,
           late ? h("span", { class: "pill late" }, "기한 지남") : st === "doing" ? h("span", { class: "pill doing" }, "진행 중") : null),
         t.note ? h("span", { class: "t-note" }, t.note) : null));
@@ -302,54 +341,55 @@ button { cursor: pointer; }
   function list(items, opts, emptyMsg) {
     return items.length ? h("div", { class: "list" }, items.map(t => taskRow(t, opts))) : h("p", { class: "empty" }, emptyMsg);
   }
-  function progressBar(c) {
-    const total = c.todo + c.doing + c.done || 1;
-    return h("div", { class: "bar", role: "img", "aria-label": `완료 ${c.done}, 진행 중 ${c.doing}, 남은 일 ${c.todo}` },
-      h("i", { class: "b-done", style: `width:${c.done / total * 100}%` }), h("i", { class: "b-doing", style: `width:${c.doing / total * 100}%` }));
+  function eventBar() {
+    const ev = curEvent();
+    return h("div", { class: "evbar" },
+      h("button", { type: "button", class: "ev-switch", onclick: openEventList, "aria-label": "행사 바꾸기" },
+        h("span", { class: "lbl" }, "행사"),
+        h("span", { class: "nm" }, ev ? ev.name || "이름 없는 행사" : "행사 선택"),
+        events.length > 1 ? h("span", { class: "ev-count" }, events.length + "개") : null,
+        svg('<path d="M6 9l6 6 6-6"/>', 2.4)),
+      canWrite() ? h("button", { type: "button", class: "btn small", onclick: () => openEventForm(null) }, "+ 새 행사") : null);
   }
-
   function hero() {
-    const dl = daysLeft(), e = eventDate();
+    const ev = curEvent(), dl = daysLeft(), e = eventDate();
     const big = dl == null ? "D-?" : dl > 0 ? `D-${dl}` : dl === 0 ? "D-DAY" : `D+${-dl}`;
-    return h("button", { type: "button", class: "hero", onclick: openSettings, "aria-label": "행사 정보 수정" },
-      h("span", { class: "eyebrow" }, "행사 준비 현황"),
-      h("h1", null, info.name || "행사 이름을 정해주세요"),
+    return h("button", { type: "button", class: "hero", onclick: () => openEventForm(ev), "aria-label": "행사 정보 수정" },
+      h("span", { class: "eyebrow" }, "지금 집중하는 행사"),
+      h("h1", null, ev.name || "이름 없는 행사"),
       h("span", { class: "row" },
         h("span", { class: "dday" }, big),
-        h("span", { class: "meta" }, e ? `${e.getFullYear()}. ${fmt(e)}${info.place ? " · " + info.place : ""}` : "날짜를 넣으면 일정이 계산돼요")),
+        h("span", { class: "meta" }, e ? `${e.getFullYear()}. ${fmt(e)}${ev.place ? " · " + ev.place : ""}` : "날짜를 넣으면 일정이 계산돼요")),
       dl != null ? ptags(periodsOn(dl)) : null,
       h("span", { class: "edit" }, e ? "행사 정보 수정" : "행사 날짜 설정하기"));
   }
+  function starter() {
+    return h("section", { class: "card starter" },
+      h("h2", null, "첫 행사를 만들어 보세요"),
+      h("p", null, "행사 이름과 날짜를 정하면, 업무별로 할 일을 직접 만들고 한 달 달력에서 일정을 볼 수 있어요. 행사는 여러 개 만들 수 있어요."),
+      canWrite() ? h("button", { type: "button", class: "btn tape", style: "flex:none", onclick: () => openEventForm(null) }, "+ 행사 만들기") : null);
+  }
 
+  // ---------- views ----------
   function viewHome() {
-    const c = counts(tasks), total = tasks.length, pct = total ? Math.round(c.done / total * 100) : 0;
     const dl = daysLeft();
-    const late = tasks.filter(isLate).sort(sortTasks);
-    const soon = dl == null
-      ? tasks.filter(t => t.status !== "done").sort(sortTasks).slice(0, 5)
-      : tasks.filter(t => t.status !== "done" && !isLate(t) && (Number(t.dday) || 0) <= dl && (Number(t.dday) || 0) >= dl - 6).sort(sortTasks);
-    const areaRows = areaList().map(a => {
-      const items = tasks.filter(t => (t.area || "기타") === a); if (!items.length) return null;
-      const ac = counts(items), p = Math.round(ac.done / items.length * 100);
-      return h("button", { type: "button", class: "area-row", onclick: () => { areaFilter = a; setTab("area"); } },
-        h("span", { class: "name" }, a), progressBar(ac), h("span", { class: "pct" }, p + "%"));
-    }).filter(Boolean);
-
+    const open = tasks.filter(t => t.status !== "done");
+    let focus;
+    if (dl == null) focus = open.filter(t => t.status === "doing").concat(open.filter(t => t.status !== "doing").sort(sortTasks).slice(0, 5));
+    else focus = open.filter(t => isLate(t) || t.status === "doing" || (Number(t.dday) || 0) >= dl - 6);
+    focus = focus.sort(sortTasks);
+    const later = open.filter(t => !focus.includes(t)).sort(sortTasks).slice(0, 5);
+    const nothingYet = !tasks.length;
     return [
       hero(),
-      h("section", { class: "card", "aria-label": "전체 진행률" },
-        h("h2", { class: "sec-title" }, "전체 진행률", h("small", null, `${c.done}/${total} 완료 · ${pct}%`)),
-        progressBar(c),
-        h("div", { class: "stats" },
-          h("div", { class: "stat" }, h("b", null, c.todo), h("span", null, "남은 일")),
-          h("div", { class: "stat" }, h("b", null, c.doing), h("span", null, "진행 중")),
-          h("div", { class: "stat" }, h("b", null, c.done), h("span", null, "완료")),
-          h("div", { class: "stat late" }, h("b", null, c.late), h("span", null, "기한 지남")))),
-      late.length ? h("section", { class: "list" }, h("h2", { class: "sec-title" }, "놓친 일", h("small", null, `${late.length}건`)), list(late, {}, "")) : null,
       h("section", { class: "list" },
-        h("h2", { class: "sec-title" }, dl == null ? "먼저 할 일" : "이번 주 할 일", h("small", null, dl == null ? "" : "앞으로 7일")),
-        list(soon, {}, total ? "이번 주에 마감인 일이 없어요." : "아직 할 일이 없어요. 아래 ‘할 일 추가’로 시작하세요.")),
-      areaRows.length ? h("section", { class: "card" }, h("h2", { class: "sec-title" }, "업무별 준비 상황", h("small", null, "눌러서 보기")), areaRows) : null,
+        h("h2", { class: "sec-title" }, "지금 집중할 일", h("small", null, dl == null ? "진행 중 · 가까운 마감" : "기한 지남 · 진행 중 · 7일 안 마감")),
+        nothingYet
+          ? h("div", { class: "card starter" },
+              h("p", null, "아직 할 일이 없어요. 업무별 탭에서 업무를 만들고 할 일을 추가하면 여기에 떠요."),
+              h("button", { type: "button", class: "btn primary", style: "flex:none", onclick: () => setTab("area") }, "업무별에서 할 일 만들기"))
+          : list(focus, {}, "지금 급한 일은 없어요. 아래 다음 할 일을 확인해 보세요.")),
+      later.length ? h("section", { class: "list" }, h("h2", { class: "sec-title" }, "그다음 할 일", h("small", null, "마감 순")), list(later, {}, "")) : null,
     ];
   }
 
@@ -359,9 +399,9 @@ button { cursor: pointer; }
       [["cal", "달력"], ["list", "단계별 목록"]].map(([k, l]) => h("button", { type: "button", "aria-pressed": String(k === planMode), onclick: () => { planMode = k; render(); } }, l)));
     if (planMode === "list") return [title, seg, ...viewPlanList()];
     const e = eventDate();
-    if (!e) return [title, seg, h("div", { class: "card" },
-      h("p", { class: "empty" }, "행사 날짜를 정하면 D-day 기준으로 한 달 달력과 기간 막대가 그려져요."),
-      h("button", { type: "button", class: "btn primary", onclick: openSettings }, "행사 날짜 설정하기"))];
+    if (!e) return [title, seg, h("div", { class: "card starter" },
+      h("p", null, "행사 날짜를 정하면 D-day 기준으로 한 달 달력과 기간 막대가 그려져요."),
+      h("button", { type: "button", class: "btn primary", style: "flex:none", onclick: () => openEventForm(curEvent()) }, "행사 날짜 설정하기"))];
 
     const ds = tasks.map(t => Number(t.dday) || 0), ps = periods.flatMap(p => [Number(p.startD) || 0, Number(p.endD) || 0]);
     const hi = Math.max(30, ...ds, ...ps), lo = Math.min(0, ...ds, ...ps);
@@ -376,21 +416,20 @@ button { cursor: pointer; }
     for (let ws = addDays(first, -first.getDay()); ws <= last; ws = addDays(ws, 7)) {
       const week = h("div", { class: "week", role: "row" });
       for (let i = 0; i < 7; i++) {
-        const d = addDays(ws, i), dd = ddOf(d), list = byDay[dd] || [];
+        const d = addDays(ws, i), dd = ddOf(d), items = byDay[dd] || [];
         const inRange = d >= first && d <= last;
         const dots = h("span", { class: "dots", "aria-hidden": "true" },
-          list.slice(0, 3).map(t => h("i", { class: isLate(t) ? "late" : t.status || "todo" })),
-          list.length > 3 ? h("b", null, "+" + (list.length - 3)) : null);
+          items.slice(0, 3).map(t => h("i", { class: isLate(t) ? "late" : t.status || "todo" })),
+          items.length > 3 ? h("b", null, "+" + (items.length - 3)) : null);
         week.append(h("button", {
           type: "button", role: "gridcell",
           class: `day${i === 0 ? " sun" : ""}${inRange ? "" : " out"}${dd === dl ? " today" : ""}${dd === 0 ? " event" : ""}${dd === selDay ? " sel" : ""}`,
           style: `grid-column:${i + 1}`,
-          "aria-label": `${fmt(d)} ${ddLabel(dd)}${dd === 0 ? " 행사일" : ""}, 할 일 ${list.length}건`,
+          "aria-label": `${fmt(d)} ${ddLabel(dd)}${dd === 0 ? " 행사일" : ""}, 할 일 ${items.length}건`,
           "aria-selected": String(dd === selDay),
           onclick: () => { selDay = dd; render(); },
         }, h("span", { class: "mon" }, d.getDate() === 1 || (i === 0 && ws <= first) ? `${d.getMonth() + 1}월` : ""), h("span", { class: "n" }, d.getDate()), dots));
       }
-      // period bars for this week, packed into lanes
       const wsDD = ddOf(ws);
       const segs = periods.map(p => {
         const sD = Number(p.startD) || 0, eD = Number(p.endD) || 0;
@@ -422,11 +461,11 @@ button { cursor: pointer; }
       h("h2", { class: "sec-title" }, `${fmt(selDate)} · ${ddLabel(selDay)}`, h("small", null, `할 일 ${selTasks.length}건`)),
       ptags(periodsOn(selDay)),
       list(selTasks, {}, "이 날 마감인 할 일이 없어요."),
-      readOnly || offline ? null : h("button", { type: "button", class: "btn", onclick: () => openTask(null, selDay) }, "이 날에 할 일 추가"));
+      canWrite() ? h("button", { type: "button", class: "add-line", onclick: () => openTask(null, { dday: selDay }) }, "+ 이 날에 할 일 추가") : null);
 
     const plist = periods.slice().sort((a, b) => (Number(b.startD) || 0) - (Number(a.startD) || 0));
     const perSec = h("section", { class: "list" },
-      h("h2", { class: "sec-title" }, "기간 설정", readOnly || offline ? null : h("button", { type: "button", class: "btn small", onclick: () => openPeriod(null) }, "+ 기간 추가")),
+      h("h2", { class: "sec-title" }, "기간 설정", canWrite() ? h("button", { type: "button", class: "btn small", onclick: () => openPeriod(null) }, "+ 기간 추가") : null),
       plist.length ? plist.map(p => {
         const s = addDays(e, -(Number(p.startD) || 0)), en = addDays(e, -(Number(p.endD) || 0));
         const n = (Number(p.startD) || 0) - (Number(p.endD) || 0) + 1;
@@ -434,7 +473,7 @@ button { cursor: pointer; }
           h("span", { class: "sw", style: `background:${pcolor(p.color)}` }),
           h("span", { style: "display:grid;gap:2px;min-width:0" }, h("span", { class: "pn" }, p.name || "기간"), h("span", { class: "pd" }, `${fmt(s)} ~ ${fmt(en)} · ${ddLabel(p.startD)} ~ ${ddLabel(p.endD)}`)),
           h("span", { class: "len" }, `${n}일`));
-      }) : h("p", { class: "empty" }, "홍보 기간, 제작 기간처럼 묶고 싶은 날짜 범위를 추가해 보세요."));
+      }) : h("p", { class: "empty" }, "홍보 기간, 제작 기간처럼 묶고 싶은 날짜 범위를 추가하면 달력에 색깔 막대로 표시돼요."));
 
     return [title, seg, cal, daySec, perSec];
   }
@@ -442,62 +481,64 @@ button { cursor: pointer; }
   function viewPlanList() {
     const dl = daysLeft(), e = eventDate();
     const out = [];
-    let any = false;
     for (const p of PHASES) {
       const items = tasks.filter(t => { const d = Number(t.dday) || 0; return d >= p.min && d <= p.max; }).sort(sortTasks);
-      if (!items.length && (p.key === "after")) continue;
-      any = any || items.length > 0;
+      if (!items.length && p.key === "after") continue;
       const isNow = dl != null && dl >= p.min && dl <= p.max;
       let range = p.key === "d0" ? "D-DAY" : p.key === "after" ? "D+1 ~" : `D-${p.max === 9999 ? "30" : p.max} ~ D-${p.min}`;
       if (e && p.key !== "after") {
-        const from = new Date(e - (p.max === 9999 ? 30 : p.max) * DAY), to = new Date(e - p.min * DAY);
+        const from = addDays(e, -(p.max === 9999 ? 30 : p.max)), to = addDays(e, -p.min);
         range += p.key === "d0" ? ` · ${fmt(to)}` : ` · ${fmt(from)}~${fmt(to)}`;
       }
-      const c = counts(items);
       out.push(h("section", { class: `phase${isNow ? " now" : ""}` },
-        h("div", { class: "phase-head" }, h("h3", null, p.label), h("span", { class: "range" }, range), isNow ? h("span", { class: "now-tag" }, "지금") : null,
-          h("span", { class: "cnt" }, items.length ? `${c.done}/${items.length}` : "")),
+        h("div", { class: "phase-head" }, h("h3", null, p.label), h("span", { class: "range" }, range), isNow ? h("span", { class: "now-tag" }, "지금") : null),
         list(items, {}, "이 기간에 잡힌 일이 없어요.")));
     }
-    if (!any && !tasks.length) out.push(h("p", { class: "empty" }, "할 일을 추가하면 D-day 기준으로 여기에 배치돼요."));
     return out;
   }
 
   function viewArea() {
-    const areas = ["전체", ...areaList()];
-    if (!areas.includes(areaFilter)) areaFilter = "전체";
-    const chips = h("div", { class: "chips", role: "group", "aria-label": "업무 고르기" },
-      areas.map(a => h("button", { type: "button", class: "chip", "aria-pressed": String(a === areaFilter), onclick: () => { areaFilter = a; render(); } }, a)));
+    const head = h("h2", { class: "sec-title" }, "업무별", canWrite() ? h("button", { type: "button", class: "btn small", onclick: () => openArea(null) }, "+ 업무 추가") : null);
+    const list0 = sortedAreas();
+    const orphan = tasks.filter(t => !areas.some(a => a.id === t.areaId));
+    if (!list0.length && !orphan.length) return [head, h("section", { class: "card starter" },
+      h("p", null, "행사 준비를 업무로 나눠 보세요. 예를 들어 장소, 홍보, 섭외, 물품처럼요. 업무를 만들고 그 안에 할 일을 추가하면 ‘지금 집중’ 화면에 떠요."),
+      canWrite() ? h("button", { type: "button", class: "btn tape", style: "flex:none", onclick: () => openArea(null) }, "+ 첫 업무 만들기") : null)];
     const seg = h("div", { class: "seg", role: "group", "aria-label": "상태 필터" },
       [["open", "남은 일"], ["all", "전체"], ["done", "완료"]].map(([k, l]) =>
         h("button", { type: "button", "aria-pressed": String(k === statusFilter), onclick: () => { statusFilter = k; render(); } }, l)));
     const pass = t => statusFilter === "all" ? true : statusFilter === "done" ? t.status === "done" : t.status !== "done";
-    const groups = (areaFilter === "전체" ? areaList() : [areaFilter]).map(a => {
-      const all = tasks.filter(t => (t.area || "기타") === a);
-      if (!all.length && areaFilter === "전체") return null;
-      const items = all.filter(pass).sort(sortTasks), c = counts(all);
+    const groups = list0.map(a => ({ a, all: tasks.filter(t => t.areaId === a.id) }));
+    if (orphan.length) groups.push({ a: null, all: orphan });
+    const cards = groups.map(({ a, all }) => {
+      const items = all.filter(pass).sort(sortTasks);
       const owners = [...new Set(all.map(t => t.owner).filter(Boolean))];
       return h("section", { class: "card" },
-        h("h2", { class: "sec-title" }, a, h("small", null, `${c.done}/${all.length} 완료${c.late ? ` · 지연 ${c.late}` : ""}`)),
-        progressBar(c),
-        owners.length ? h("span", { class: "t-meta" }, "담당: " + owners.join(", ")) : null,
-        list(items, { hideArea: true }, statusFilter === "done" ? "완료한 일이 아직 없어요." : statusFilter === "open" && all.length ? "남은 일이 없어요. 이 업무는 준비 끝!" : "이 업무에 할 일이 없어요."));
-    }).filter(Boolean);
-    return [h("h2", { class: "sec-title" }, "업무별 준비 상황"), chips, seg, ...(groups.length ? groups : [h("p", { class: "empty" }, "할 일이 없어요.")])];
+        h("div", { class: "area-head" },
+          a ? h("button", { type: "button", class: "area-name", onclick: () => openArea(a), "aria-label": `${a.name} 업무 이름 바꾸기` }, h("span", null, a.name || "업무"), svg('<path d="M4 20h4L19 9l-4-4L4 16z"/>', 2))
+            : h("span", { class: "area-name" }, h("span", null, "미분류")),
+          h("span", { class: "area-sub" }, `할 일 ${all.length}개`)),
+        owners.length ? h("span", { class: "area-sub" }, "담당: " + owners.join(", ")) : null,
+        list(items, { hideArea: true }, statusFilter === "done" ? "완료한 일이 없어요." : statusFilter === "open" && all.length ? "남은 일이 없어요." : "아직 할 일이 없어요."),
+        canWrite() ? h("button", { type: "button", class: "add-line", onclick: () => openTask(null, { areaId: a ? a.id : "" }) }, "+ 할 일 추가") : null);
+    });
+    return [head, seg, ...cards];
   }
 
   function render() {
     const app = document.getElementById("app");
     app.replaceChildren();
-    if (offline) app.append(h("p", { class: "notice" }, "로그인한 상태에서 열면 팀원과 함께 저장되고 실시간으로 공유돼요. 지금은 볼 수만 있어요."));
+    if (noStore) app.append(h("p", { class: "notice" }, "로그인한 상태에서 열면 팀원과 함께 저장되고 실시간으로 공유돼요. 지금은 볼 수만 있어요."));
+    else if (readOnly) app.append(h("p", { class: "notice" }, "보기 전용 권한이에요. 수정하려면 공유한 사람에게 ‘참여자’ 이상 권한을 요청하세요."));
     else if (localMode && tab === "home") app.append(h("p", { class: "notice" }, "이 기기 브라우저에 저장돼요. 다른 기기·팀원과는 공유되지 않아요."));
-    else if (readOnly) app.append(h("p", { class: "notice" }, "보기 전용 권한이에요. 체크하려면 공유한 사람에게 ‘참여자’ 이상 권한을 요청하세요."));
-    if (stale && !loaded) app.append(h("p", { class: "notice" }, "데이터를 아직 불러오지 못했어요. 연결을 확인해 주세요."));
-    if (!loaded && !offline) { app.append(h("div", { class: "loading", "aria-label": "불러오는 중" }, h("div"), h("div"), h("div"))); return; }
+    if (stale && !eventsLoaded) app.append(h("p", { class: "notice" }, "데이터를 아직 불러오지 못했어요. 연결을 확인해 주세요."));
+    document.querySelectorAll(".nav button").forEach(b => b.dataset.tab === tab ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+    if (!eventsLoaded) { app.append(h("div", { class: "loading", "aria-label": "불러오는 중" }, h("div"), h("div"), h("div"))); return; }
+    if (!events.length || !curEvent()) { app.append(starter()); return; }
+    app.append(eventBar());
+    if (!evLoaded) { app.append(h("div", { class: "loading", "aria-label": "불러오는 중" }, h("div"), h("div"))); return; }
     const v = tab === "plan" ? viewPlan() : tab === "area" ? viewArea() : viewHome();
     app.append(...v.filter(Boolean));
-    document.querySelectorAll(".nav button").forEach(b => b.dataset.tab === tab ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
-    document.getElementById("fab-add").hidden = offline || readOnly;
   }
   function setTab(t) { tab = t; render(); window.scrollTo(0, 0); }
   document.querySelectorAll(".nav button").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
@@ -508,46 +549,133 @@ button { cursor: pointer; }
     const sheet = h("div", { class: "sheet", role: "dialog", "aria-modal": "true", "aria-label": title }, h("div", { class: "grip" }), h("h2", null, title), ...body);
     const bd = h("div", { class: "backdrop", onclick: e => { if (e.target === bd) closeSheet(); } }, sheet);
     document.getElementById("sheet-root").replaceChildren(bd);
-    const first = sheet.querySelector("input,select,textarea"); if (first) setTimeout(() => first.focus(), 50);
+    const first = sheet.querySelector("input:not([type=radio]),select,textarea"); if (first) setTimeout(() => first.focus(), 50);
   }
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+  function deleteButton(onConfirm) {
+    let armed = false;
+    const b = h("button", { type: "button", class: "btn danger", onclick: async () => {
+      if (!armed) { armed = true; b.classList.add("armed"); b.textContent = "정말 삭제"; return; }
+      b.disabled = true; await onConfirm(); b.disabled = false;
+    } }, "삭제");
+    return b;
+  }
+  function lockIfReadOnly(form) { if (!canWrite()) form.querySelectorAll("input,select,textarea,button[type=submit],.btn.danger").forEach(x => x.disabled = true); }
 
-  function openTask(t, presetD) {
+  function openEventList() {
+    const rows = events.slice().sort((a, b) => {
+      if (a.id === cur) return -1; if (b.id === cur) return 1;
+      const da = evDays(a), dbb = evDays(b);
+      const ka = da == null ? 1e9 : da < 0 ? 1e6 - da : da, kb = dbb == null ? 1e9 : dbb < 0 ? 1e6 - dbb : dbb;
+      return ka - kb;
+    }).map(ev => {
+      const d = parseDate(ev.date), dd = evDays(ev);
+      return h("div", { class: `ev-row${ev.id === cur ? " cur" : ""}` },
+        h("button", { type: "button", class: "ev-main", onclick: () => { closeSheet(); if (ev.id !== cur) { switchEvent(ev.id); setTab("home"); } } },
+          h("span", { class: "nm" }, ev.name || "이름 없는 행사"),
+          h("span", { class: "mt" },
+            dd != null ? h("span", { class: "dd" }, dd > 0 ? `D-${dd}` : dd === 0 ? "D-DAY" : `D+${-dd}`) : null,
+            h("span", null, d ? `${d.getFullYear()}. ${fmt(d)}` : "날짜 미정"),
+            ev.place ? h("span", null, ev.place) : null,
+            ev.id === cur ? h("span", { class: "now-tag" }, "지금 집중") : null)),
+        canWrite() ? h("button", { type: "button", class: "btn small", onclick: () => openEventForm(ev) }, "수정") : null);
+    });
+    openSheet("행사 목록", [
+      h("p", { class: "hint", style: "margin:0" }, "고른 행사가 시작 화면에 먼저 떠요."),
+      h("div", { class: "list" }, rows),
+      canWrite() ? h("button", { type: "button", class: "btn tape", onclick: () => openEventForm(null) }, "+ 새 행사 만들기") : null,
+    ]);
+  }
+
+  function openEventForm(ev) {
+    const isNew = !ev;
+    ev = ev || { name: "", date: "", place: "" };
+    const fName = h("input", { id: "e-name", type: "text", value: ev.name || "", placeholder: "예: 연말 네트워킹 파티", maxlength: "60", required: true });
+    const fDate = h("input", { id: "e-date", type: "date", value: ev.date || "" });
+    const fPlace = h("input", { id: "e-place", type: "text", value: ev.place || "", placeholder: "예: 성수 ○○홀", maxlength: "60" });
+    const delBtn = isNew ? null : deleteButton(async () => {
+      const ok = await save(async () => {
+        if (cur === ev.id) { switchEvent(null); setFocus(null); }
+        for (const c of ["tasks", "periods", "areas"]) {
+          const s = await db.collection(`events/${ev.id}/${c}`).get();
+          for (const d of s.docs) await db.doc(`events/${ev.id}/${c}/${d.id}`).delete();
+        }
+        await db.doc("events/" + ev.id).delete();
+      }, "행사를 삭제했어요");
+      if (ok) closeSheet();
+    });
+    const form = h("form", { class: "field", style: "gap:14px", onsubmit: async e => {
+      e.preventDefault();
+      const name = fName.value.trim(); if (!name) { fName.focus(); return; }
+      const body = { name, date: fDate.value, place: fPlace.value.trim(), updatedAt: Date.now() };
+      if (isNew) {
+        const ref = await save(() => db.collection("events").add({ ...body, createdAt: Date.now() }), "행사를 만들었어요");
+        if (ref) { closeSheet(); switchEvent(ref.id); setTab("area"); }
+      } else if (await save(() => db.doc("events/" + ev.id).update(body), "행사 정보를 저장했어요")) closeSheet();
+    } },
+      h("div", { class: "field" }, h("label", { for: "e-name" }, "행사 이름"), fName),
+      h("div", { class: "field" }, h("label", { for: "e-date" }, "행사 날짜"), fDate, h("span", { class: "hint" }, "날짜를 바꾸면 할 일과 기간이 D-day 기준으로 함께 움직여요.")),
+      h("div", { class: "field" }, h("label", { for: "e-place" }, "장소"), fPlace),
+      isNew ? null : h("span", { class: "hint" }, "행사를 삭제하면 그 행사의 업무, 할 일, 기간도 모두 지워져요."),
+      h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), h("button", { type: "submit", class: "btn primary" }, isNew ? "만들기" : "저장하기")));
+    lockIfReadOnly(form);
+    openSheet(isNew ? "새 행사" : "행사 정보", [form]);
+  }
+
+  function openArea(a) {
+    const isNew = !a;
+    const fName = h("input", { id: "a-name", type: "text", value: a ? a.name || "" : "", placeholder: "예: 홍보, 장소, 섭외", maxlength: "20", required: true });
+    const count = a ? tasks.filter(t => t.areaId === a.id).length : 0;
+    const delBtn = isNew ? null : deleteButton(async () => {
+      if (await save(() => db.doc(P("areas/" + a.id)).delete(), "업무를 삭제했어요")) closeSheet();
+    });
+    const form = h("form", { class: "field", style: "gap:14px", onsubmit: async e => {
+      e.preventDefault();
+      const name = fName.value.trim(); if (!name) { fName.focus(); return; }
+      const ok = isNew ? await save(() => db.collection(P("areas")).add({ name, createdAt: Date.now() }), "업무를 만들었어요")
+                       : await save(() => db.doc(P("areas/" + a.id)).update({ name }), "업무 이름을 바꿨어요");
+      if (ok) closeSheet();
+    } },
+      h("div", { class: "field" }, h("label", { for: "a-name" }, "업무 이름"), fName),
+      !isNew && count ? h("span", { class: "hint" }, `업무를 삭제해도 할 일 ${count}개는 남고 ‘미분류’로 옮겨져요.`) : null,
+      h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), h("button", { type: "submit", class: "btn primary" }, isNew ? "만들기" : "저장하기")));
+    lockIfReadOnly(form);
+    openSheet(isNew ? "업무 추가" : "업무 수정", [form]);
+  }
+
+  function openTask(t, preset = {}) {
     const isNew = !t, e = eventDate();
-    t = t || { title: "", area: areaFilter !== "전체" ? areaFilter : AREAS[0], dday: presetD ?? Math.max(0, daysLeft() ?? 14), status: "todo", owner: "", note: "" };
+    const firstArea = sortedAreas()[0];
+    t = t || { title: "", areaId: preset.areaId ?? (firstArea ? firstArea.id : ""), dday: preset.dday ?? Math.max(0, daysLeft() ?? 14), status: "todo", owner: "", note: "" };
     const fTitle = h("input", { id: "f-title", type: "text", value: t.title, placeholder: "예: 현수막 시안 확정", maxlength: "80", required: true });
-    const fArea = h("input", { id: "f-area", type: "text", value: t.area || "", list: "area-list", placeholder: "업무 선택 또는 입력" });
-    const dl = h("datalist", { id: "area-list" }, areaList().map(a => h("option", { value: a })));
+    const opts = sortedAreas().map(a => h("option", { value: a.id, selected: a.id === t.areaId }, a.name || "업무"));
+    opts.push(h("option", { value: "", selected: !areas.some(a => a.id === t.areaId) }, "미분류"));
+    const fArea = h("select", { id: "f-area" }, opts);
     const fD = h("input", { id: "f-dday", type: "number", inputmode: "numeric", value: String(Number(t.dday) || 0), step: "1" });
     const fDate = h("input", { id: "f-date", type: "date", disabled: !e });
     const hint = h("span", { class: "hint" });
-    const syncFromD = () => { const n = Number(fD.value) || 0; hint.textContent = `${ddLabel(n)}${e ? " · " + fmt(new Date(e - n * DAY)) : ""}  (행사 후 일은 음수, 예: -3)`; if (e) { const d = new Date(e - n * DAY); fDate.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; } };
+    const syncFromD = () => { const n = Number(fD.value) || 0; hint.textContent = `${ddLabel(n)}${e ? " · " + fmt(addDays(e, -n)) : ""}  (행사 후 일은 음수, 예: -3)`; if (e) fDate.value = isoOf(addDays(e, -n)); };
     fD.addEventListener("input", syncFromD);
-    fDate.addEventListener("change", () => { const d = parseDate(fDate.value); if (d && e) { fD.value = String(Math.round((e - d) / DAY)); syncFromD(); } });
+    fDate.addEventListener("change", () => { const d = parseDate(fDate.value); if (d && e) { fD.value = String(ddOf(d)); syncFromD(); } });
     syncFromD();
     const fStatus = h("select", { id: "f-status" }, Object.entries(STATUS_LABEL).map(([k, l]) => h("option", { value: k, selected: k === (t.status || "todo") }, l)));
     const fOwner = h("input", { id: "f-owner", type: "text", value: t.owner || "", placeholder: "예: 김민지", maxlength: "30" });
     const fNote = h("textarea", { id: "f-note", placeholder: "업체 연락처, 결정 사항, 막힌 점 등", maxlength: "500" }, t.note || "");
-    const saveBtn = h("button", { type: "submit", class: "btn primary" }, isNew ? "추가하기" : "저장하기");
-    let armed = false;
-    const delBtn = isNew ? null : h("button", { type: "button", class: "btn danger", onclick: async () => {
-      if (!armed) { armed = true; delBtn.classList.add("armed"); delBtn.textContent = "정말 삭제"; return; }
-      if (await save(() => db.doc("tasks/" + t.id).delete(), "삭제했어요")) closeSheet();
-    } }, "삭제");
+    const delBtn = isNew ? null : deleteButton(async () => {
+      if (await save(() => db.doc(P("tasks/" + t.id)).delete(), "삭제했어요")) closeSheet();
+    });
     const form = h("form", { class: "field", style: "gap:14px", onsubmit: async ev => {
       ev.preventDefault();
       const title = fTitle.value.trim(); if (!title) { fTitle.focus(); return; }
-      const body = { title, area: fArea.value.trim() || "기타", dday: Math.round(Number(fD.value) || 0), status: fStatus.value, owner: fOwner.value.trim(), note: fNote.value.trim(), updatedAt: Date.now() };
-      saveBtn.disabled = true;
+      const body = { title, areaId: fArea.value, dday: Math.round(Number(fD.value) || 0), status: fStatus.value, owner: fOwner.value.trim(), note: fNote.value.trim(), updatedAt: Date.now() };
       const ok = isNew
-        ? await save(() => db.collection("tasks").add({ ...body, createdAt: Date.now() }), "추가했어요")
-        : await save(() => db.doc("tasks/" + t.id).update(body), "저장했어요");
-      saveBtn.disabled = false;
+        ? await save(() => db.collection(P("tasks")).add({ ...body, createdAt: Date.now() }), "추가했어요")
+        : await save(() => db.doc(P("tasks/" + t.id)).update(body), "저장했어요");
       if (ok) closeSheet();
     } },
       h("div", { class: "field" }, h("label", { for: "f-title" }, "할 일"), fTitle),
       h("div", { class: "two" },
-        h("div", { class: "field" }, h("label", { for: "f-area" }, "업무"), fArea, dl),
+        h("div", { class: "field" }, h("label", { for: "f-area" }, "업무"), fArea),
         h("div", { class: "field" }, h("label", { for: "f-owner" }, "담당자"), fOwner)),
       h("div", { class: "two" },
         h("div", { class: "field" }, h("label", { for: "f-dday" }, "행사 며칠 전"), fD),
@@ -555,29 +683,14 @@ button { cursor: pointer; }
       hint,
       h("div", { class: "field" }, h("label", { for: "f-status" }, "상태"), fStatus),
       h("div", { class: "field" }, h("label", { for: "f-note" }, "메모"), fNote),
-      h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), saveBtn));
-    if (readOnly || offline) form.querySelectorAll("input,select,textarea,button[type=submit]").forEach(x => x.disabled = true);
+      h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), h("button", { type: "submit", class: "btn primary" }, isNew ? "추가하기" : "저장하기")));
+    lockIfReadOnly(form);
     openSheet(isNew ? "할 일 추가" : "할 일 수정", [form]);
   }
 
-  function openSettings() {
-    const fName = h("input", { id: "s-name", type: "text", value: info.name || "", placeholder: "예: 2026 연말 네트워킹 파티", maxlength: "60" });
-    const fDate = h("input", { id: "s-date", type: "date", value: info.date || "" });
-    const fPlace = h("input", { id: "s-place", type: "text", value: info.place || "", placeholder: "예: 성수 ○○홀", maxlength: "60" });
-    const form = h("form", { class: "field", style: "gap:14px", onsubmit: async ev => {
-      ev.preventDefault();
-      const ok = await save(() => db.doc("event/info").set({ name: fName.value.trim(), date: fDate.value, place: fPlace.value.trim(), updatedAt: Date.now() }), "행사 정보를 저장했어요");
-      if (ok) closeSheet();
-    } },
-      h("div", { class: "field" }, h("label", { for: "s-name" }, "행사 이름"), fName),
-      h("div", { class: "field" }, h("label", { for: "s-date" }, "행사 날짜"), fDate, h("span", { class: "hint" }, "날짜를 바꾸면 모든 할 일의 마감일이 D-day 기준으로 함께 움직여요.")),
-      h("div", { class: "field" }, h("label", { for: "s-place" }, "장소"), fPlace),
-      h("div", { class: "actions" }, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), h("button", { type: "submit", class: "btn primary", disabled: readOnly || offline }, "저장하기")));
-    openSheet("행사 정보", [form]);
-  }
   function openPeriod(p) {
     const e = eventDate();
-    if (!e) { openSettings(); return; }
+    if (!e) { openEventForm(curEvent()); return; }
     const isNew = !p;
     p = p || { name: "", color: PCOLORS[periods.length % PCOLORS.length], startD: selDay ?? 14, endD: Math.max(0, (selDay ?? 14) - 6) };
     const fName = h("input", { id: "p-name", type: "text", value: p.name, placeholder: "예: 홍보 기간", maxlength: "20", required: true });
@@ -590,12 +703,9 @@ button { cursor: pointer; }
     const sw = h("div", { class: "swatches", role: "radiogroup", "aria-label": "막대 색" },
       PCOLORS.map((k, i) => h("label", { style: `background:${pcolor(k)}`, title: `색 ${i + 1}` },
         h("input", { type: "radio", name: "p-color", id: `p-color-${k}`, value: k, checked: k === (p.color || "p1"), "aria-label": `색 ${i + 1}` }))));
-    const saveBtn = h("button", { type: "submit", class: "btn primary" }, isNew ? "추가하기" : "저장하기");
-    let armed = false;
-    const delBtn = isNew ? null : h("button", { type: "button", class: "btn danger", onclick: async () => {
-      if (!armed) { armed = true; delBtn.classList.add("armed"); delBtn.textContent = "정말 삭제"; return; }
-      if (await save(() => db.doc("periods/" + p.id).delete(), "기간을 삭제했어요")) closeSheet();
-    } }, "삭제");
+    const delBtn = isNew ? null : deleteButton(async () => {
+      if (await save(() => db.doc(P("periods/" + p.id)).delete(), "기간을 삭제했어요")) closeSheet();
+    });
     const form = h("form", { class: "field", style: "gap:14px", onsubmit: async ev => {
       ev.preventDefault();
       const name = fName.value.trim(); if (!name) { fName.focus(); return; }
@@ -603,66 +713,73 @@ button { cursor: pointer; }
       if (!s || !en || en < s) { fEnd.focus(); return; }
       const color = (sw.querySelector("input:checked") || {}).value || "p1";
       const body = { name, color, startD: ddOf(s), endD: ddOf(en), updatedAt: Date.now() };
-      saveBtn.disabled = true;
-      const ok = isNew ? await save(() => db.collection("periods").add({ ...body, createdAt: Date.now() }), "기간을 추가했어요")
-                       : await save(() => db.doc("periods/" + p.id).update(body), "기간을 저장했어요");
-      saveBtn.disabled = false;
+      const ok = isNew ? await save(() => db.collection(P("periods")).add({ ...body, createdAt: Date.now() }), "기간을 추가했어요")
+                       : await save(() => db.doc(P("periods/" + p.id)).update(body), "기간을 저장했어요");
       if (ok) closeSheet();
     } },
       h("div", { class: "field" }, h("label", { for: "p-name" }, "기간 이름"), fName),
-      h("div", { class: "field" }, h("span", { style: "font-size:13px;font-weight:600;color:var(--muted)" }, "막대 색"), sw),
+      h("div", { class: "field" }, h("span", { class: "lab" }, "막대 색"), sw),
       h("div", { class: "two" },
         h("div", { class: "field" }, h("label", { for: "p-start" }, "시작일"), fStart),
         h("div", { class: "field" }, h("label", { for: "p-end" }, "종료일"), fEnd)),
       hint,
-      h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), saveBtn));
-    if (readOnly || offline) form.querySelectorAll("input,button[type=submit]").forEach(x => x.disabled = true);
+      h("div", { class: "actions" }, delBtn, h("button", { type: "button", class: "btn", onclick: closeSheet }, "닫기"), h("button", { type: "submit", class: "btn primary" }, isNew ? "추가하기" : "저장하기")));
+    lockIfReadOnly(form);
     openSheet(isNew ? "기간 추가" : "기간 수정", [form]);
   }
-  document.getElementById("fab-add").addEventListener("click", () => openTask(null, tab === "plan" && planMode === "cal" && eventDate() ? selDay : undefined));
 
-  // ---------- boot ----------
   // ---------- local storage (used outside claude.ai, e.g. GitHub Pages) ----------
-  const SEED = {"event": {}, "tasks": {"t01": {"title": "행사 목적·목표 확정", "area": "기획·총괄", "dday": 30, "status": "todo", "owner": "", "note": ""}, "t02": {"title": "예산안 작성", "area": "예산·정산", "dday": 30, "status": "todo", "owner": "", "note": ""}, "t03": {"title": "장소 확정 및 대관 계약", "area": "장소·시설", "dday": 29, "status": "todo", "owner": "", "note": ""}, "t04": {"title": "세부 타임테이블 초안", "area": "기획·총괄", "dday": 28, "status": "todo", "owner": "", "note": ""}, "t05": {"title": "연사·출연진 섭외 요청", "area": "섭외·연사", "dday": 27, "status": "todo", "owner": "", "note": ""}, "t06": {"title": "홍보 계획 수립 (채널·일정)", "area": "홍보·마케팅", "dday": 25, "status": "todo", "owner": "", "note": ""}, "t07": {"title": "포스터·웹배너 제작", "area": "홍보·마케팅", "dday": 21, "status": "todo", "owner": "", "note": ""}, "t08": {"title": "음향·조명·영상 업체 확정", "area": "장소·시설", "dday": 20, "status": "todo", "owner": "", "note": ""}, "t09": {"title": "참가 신청 페이지 오픈", "area": "홍보·마케팅", "dday": 20, "status": "todo", "owner": "", "note": ""}, "t10": {"title": "출연 확정 및 계약", "area": "섭외·연사", "dday": 18, "status": "todo", "owner": "", "note": ""}, "t11": {"title": "기념품·굿즈 발주", "area": "물품·디자인", "dday": 16, "status": "todo", "owner": "", "note": ""}, "t12": {"title": "스태프 모집 및 역할 배정", "area": "인력·운영", "dday": 15, "status": "todo", "owner": "", "note": ""}, "t13": {"title": "업체 견적 비교 및 결제", "area": "예산·정산", "dday": 14, "status": "todo", "owner": "", "note": ""}, "t14": {"title": "SNS 2차 홍보", "area": "홍보·마케팅", "dday": 12, "status": "todo", "owner": "", "note": ""}, "t15": {"title": "큐시트 확정", "area": "기획·총괄", "dday": 10, "status": "todo", "owner": "", "note": ""}, "t16": {"title": "명찰·배너·현수막 인쇄 발주", "area": "물품·디자인", "dday": 9, "status": "todo", "owner": "", "note": ""}, "t17": {"title": "장소 답사 및 동선 확인", "area": "장소·시설", "dday": 7, "status": "todo", "owner": "", "note": ""}, "t18": {"title": "스태프 교육·사전 미팅", "area": "인력·운영", "dday": 6, "status": "todo", "owner": "", "note": ""}, "t19": {"title": "연사 발표자료 수합", "area": "섭외·연사", "dday": 5, "status": "todo", "owner": "", "note": ""}, "t20": {"title": "물품 입고 및 검수", "area": "물품·디자인", "dday": 4, "status": "todo", "owner": "", "note": ""}, "t21": {"title": "최종 리허설", "area": "기획·총괄", "dday": 3, "status": "todo", "owner": "", "note": ""}, "t22": {"title": "참가자 안내 문자 발송", "area": "홍보·마케팅", "dday": 2, "status": "todo", "owner": "", "note": ""}, "t23": {"title": "현장 세팅", "area": "장소·시설", "dday": 1, "status": "todo", "owner": "", "note": ""}, "t24": {"title": "현장 총괄·진행", "area": "인력·운영", "dday": 0, "status": "todo", "owner": "", "note": ""}, "t25": {"title": "정산 및 결과 보고", "area": "예산·정산", "dday": -3, "status": "todo", "owner": "", "note": ""}}, "periods": {"pr1": {"name": "기획·섭외 기간", "color": "p1", "startD": 30, "endD": 22}, "pr2": {"name": "홍보 기간", "color": "p5", "startD": 25, "endD": 2}, "pr3": {"name": "제작·발주 기간", "color": "p3", "startD": 16, "endD": 4}, "pr4": {"name": "리허설·세팅", "color": "p4", "startD": 3, "endD": 1}, "pr5": {"name": "정산 기간", "color": "p2", "startD": -1, "endD": -5}}};
   function localDB() {
-    const KEY = "event-prep-board-v1";
+    const KEY = "event-prep-board-v2";
     let state = null;
     try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
-    if (!state || typeof state !== "object") state = JSON.parse(JSON.stringify(SEED));
-    for (const c of ["event", "tasks", "periods"]) state[c] = state[c] || {};
+    if (!state || typeof state !== "object") state = {};
     const subs = new Set();
     const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} subs.forEach(f => f()); };
     const meta = { fromCache: false, hasPendingWrites: false };
-    const snap = (c, id) => ({ id, exists: !!state[c][id], data: () => state[c][id], metadata: meta });
+    const col = c => (state[c] = state[c] || {});
+    const snap = (c, id) => ({ id, exists: !!col(c)[id], data: () => col(c)[id], metadata: meta });
     const docRef = (c, id) => ({
       id,
       get: async () => snap(c, id),
-      set: async d => { state[c][id] = { ...d }; persist(); },
-      update: async d => { if (!state[c][id]) throw { code: "invalid_argument" }; state[c][id] = { ...state[c][id], ...d }; persist(); },
-      delete: async () => { delete state[c][id]; persist(); },
+      set: async d => { col(c)[id] = { ...d }; persist(); },
+      update: async d => { if (!col(c)[id]) throw { code: "invalid_argument" }; col(c)[id] = { ...col(c)[id], ...d }; persist(); },
+      delete: async () => { delete col(c)[id]; persist(); },
       onSnapshot: next => { const f = () => next(snap(c, id)); subs.add(f); setTimeout(f); return () => subs.delete(f); },
     });
+    const qsnap = c => { const docs = Object.keys(col(c)).map(id => snap(c, id)); return { docs, size: docs.length, empty: !docs.length, metadata: meta }; };
     const colRef = c => ({
       doc: id => docRef(c, id || "x" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)),
       add: async d => { const r = colRef(c).doc(); await r.set(d); return r; },
-      onSnapshot: next => { const f = () => { const docs = Object.keys(state[c]).map(id => snap(c, id)); next({ docs, size: docs.length, empty: !docs.length, metadata: meta }); }; subs.add(f); setTimeout(f); return () => subs.delete(f); },
+      get: async () => qsnap(c),
+      onSnapshot: next => { const f = () => next(qsnap(c)); subs.add(f); setTimeout(f); return () => subs.delete(f); },
     });
-    return { doc: p => { const [c, id] = p.split("/"); return docRef(c, id); }, collection: colRef };
+    return {
+      doc: p => { const i = p.lastIndexOf("/"); return docRef(p.slice(0, i), p.slice(i + 1)); },
+      collection: colRef,
+    };
   }
 
+  // ---------- boot ----------
   async function boot() {
-    db = window.claude ? await window.claude.use("db").catch(() => null) : null;
-    if (!db) { db = localDB(); localMode = true; }
-    const user = localMode ? null : await window.claude.use("user").catch(() => null);
-    if (user && (await user.can("data.write")) === false) readOnly = true;
+    const claude = window.claude;
+    if (claude && claude.use) {
+      db = await claude.use("db").catch(() => null);
+      if (!db) noStore = true;
+      else {
+        const user = await claude.use("user").catch(() => null);
+        if (user && (await user.can("data.write")) === false) readOnly = true;
+      }
+    } else { db = localDB(); localMode = true; }
+    if (!db) { eventsLoaded = true; render(); return; }
     const timer = setTimeout(() => { stale = true; render(); }, 10000);
-    db.doc("event/info").onSnapshot(s => { info = s.exists ? s.data() : {}; render(); }, () => {});
-    db.collection("periods").onSnapshot(s => { periods = s.docs.map(d => ({ id: d.id, ...d.data() })); render(); }, () => {});
-    db.collection("tasks").onSnapshot(s => {
-      tasks = s.docs.map(d => ({ id: d.id, ...d.data() }));
+    db.collection("events").onSnapshot(s => {
+      events = s.docs.map(d => ({ id: d.id, ...d.data() }));
       if (!s.metadata.fromCache) { clearTimeout(timer); stale = false; }
-      loaded = true; render();
-    }, () => { clearTimeout(timer); loaded = true; stale = true; render(); });
+      eventsLoaded = true;
+      const want = pickEvent();
+      if (want !== cur || (want && !unsubs.length)) switchEvent(want); else render();
+    }, () => { clearTimeout(timer); eventsLoaded = true; stale = true; render(); });
   }
   render();
   boot();

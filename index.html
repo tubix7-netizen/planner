@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="행사준비">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px;font-family:system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>행사 준비 보드</title>
@@ -32,35 +33,40 @@
   --chip: #ECEEE8;
   --p1: #3B6FD8; --p2: #2E8F63; --p3: #D46A22; --p4: #8457CB; --p5: #C9467B; --p6: #1B8794; --p7: #A07A0C; --p8: #5A6878;  /* area + period colors, white text on all */
   --shadow: 0 1px 2px rgba(24,34,45,.06), 0 6px 20px rgba(24,34,45,.06);
+  --desk: #D9DDD4;          /* backdrop behind the phone frame on wide screens */
+  --frame: #0E1318;
   --f-body: "IBM Plex Sans KR", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   --f-num: "Space Grotesk", "IBM Plex Sans KR", ui-monospace, sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #11151A; --surface: #1A2028; --line: #2A323C; --ink: #E8ECEF; --muted: #98A3AD;
   --tape: #F2C230; --tape-ink: #2A2100; --doing: #6FA0F0; --done: #5BBE86; --late: #F07A63; --late-bg: #3A2320;
-  --chip: #232B35; --shadow: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark;
+  --chip: #232B35; --shadow: 0 1px 2px rgba(0,0,0,.3); --desk: #07090C; --frame: #000000; color-scheme: dark;
 } }
 :root[data-theme="dark"] {
   --bg: #11151A; --surface: #1A2028; --line: #2A323C; --ink: #E8ECEF; --muted: #98A3AD;
   --tape: #F2C230; --tape-ink: #2A2100; --doing: #6FA0F0; --done: #5BBE86; --late: #F07A63; --late-bg: #3A2320;
-  --chip: #232B35; --shadow: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark;
+  --chip: #232B35; --shadow: 0 1px 2px rgba(0,0,0,.3); --desk: #07090C; --frame: #000000; color-scheme: dark;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; -webkit-tap-highlight-color: transparent; overflow: hidden; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--doing); outline-offset: 2px; }
 
-.wrap { max-width: 560px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px calc(96px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 18px; }
+.wrap { margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 28px; display: grid; gap: 18px; }
 
 .notice { font-size: 13px; color: var(--muted); background: var(--chip); border-radius: 10px; padding: 10px 12px; margin: 0; }
 
 /* Event switcher */
 .evbar { display: flex; align-items: center; gap: 8px; }
-.ev-switch { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 8px 12px; text-align: left; }
-.ev-switch .lbl { font-size: 11px; color: var(--muted); flex: none; }
-.ev-switch .nm { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.ev-switch svg { width: 16px; height: 16px; flex: none; margin-left: auto; color: var(--muted); }
+.ev-switch { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; column-gap: 6px; align-items: center; border: 0; background: none; padding: 2px 0; text-align: left; }
+.ev-switch .lbl { flex-basis: 100%; font-size: 11px; color: var(--muted); line-height: 1.2; }
+.ev-switch .nm { font-size: 21px; font-weight: 700; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; letter-spacing: -.01em; }
+.ev-switch svg { width: 18px; height: 18px; flex: none; color: var(--muted); }
+.btn.icon { flex: none; width: 42px; height: 42px; padding: 0; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.icon svg { width: 20px; height: 20px; }
 .ev-count { font-family: var(--f-num); font-size: 11px; background: var(--chip); color: var(--muted); border-radius: 99px; padding: 0 7px; flex: none; }
 
 /* Hero */
@@ -125,15 +131,16 @@ button { cursor: pointer; }
 .add-line { border: 1px dashed var(--line); background: none; border-radius: 12px; padding: 10px; color: var(--muted); font-weight: 600; font-size: 14px; }
 
 /* Bottom nav */
-.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface); border-top: 1px solid var(--line); padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); }
-.nav-in { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
-.nav button { border: 0; background: none; padding: 10px 0 9px; display: grid; justify-items: center; gap: 2px; font-size: 11px; color: var(--muted); }
-.nav button svg { width: 22px; height: 22px; }
+.nav { flex: none; z-index: 20; background: var(--surface); border-top: 1px solid var(--line); padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px)); }
+.nav-in { display: grid; grid-template-columns: repeat(3, 1fr); }
+.nav button { border: 0; background: none; padding: 8px 0 10px; display: grid; justify-items: center; gap: 3px; font-size: 11.5px; color: var(--muted); }
+.nav button svg { width: 56px; height: 30px; padding: 4px 17px; border-radius: 99px; transition: background .15s; }
 .nav button[aria-current="page"] { color: var(--ink); font-weight: 700; }
+.nav button[aria-current="page"] svg { background: color-mix(in srgb, var(--tape) 70%, transparent); color: var(--tape-ink); }
 
 /* Sheet */
-.backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(10,14,18,.45); display: flex; align-items: flex-end; justify-content: center; }
-.sheet { width: 100%; max-width: 560px; max-height: 90%; overflow-y: auto; background: var(--surface); border-radius: 18px 18px 0 0; padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 14px; }
+.backdrop { position: absolute; inset: 0; z-index: 40; background: rgba(10,14,18,.45); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { width: 100%; max-height: 88%; overflow-y: auto; background: var(--surface); border-radius: 18px 18px 0 0; padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 14px; }
 .grip { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 4px auto 0; }
 .sheet h2 { margin: 0; font-size: 18px; }
 .field { display: grid; gap: 6px; }
@@ -235,7 +242,18 @@ body.v-detail .day { min-height: 80px; }
 .cchip.late { box-shadow: inset 0 0 0 1px var(--late); }
 .cmore { font-size: 9px; color: var(--muted); line-height: 1; }
 
-.toast { position: fixed; z-index: 50; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-size: 13px; max-width: calc(100% - 32px); }
+.toast { position: absolute; z-index: 50; left: 50%; transform: translateX(-50%); bottom: 84px; white-space: nowrap; background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-size: 13px; max-width: calc(100% - 32px); }
+
+/* App shell: a phone-sized screen; on wide screens it sits in a device frame */
+.phone { position: relative; height: 100%; max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
+.screen { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.appbar { position: sticky; top: 0; z-index: 10; display: grid; gap: 10px; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); background: color-mix(in srgb, var(--bg) 90%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+button { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+@media (prefers-reduced-motion: no-preference) { button:active:not([disabled]) { transform: scale(.97); } .day:active, .pbar:active { transform: none; } }
+@media (min-width: 620px) and (min-height: 600px) {
+  body { background: var(--desk); }
+  .phone { height: min(900px, calc(100% - 48px)); margin-top: 24px; border: 10px solid var(--frame); border-radius: 44px; box-shadow: 0 30px 80px rgba(0,0,0,.28); }
+}
 
 .loading { display: grid; gap: 8px; }
 .loading div { height: 54px; border-radius: 12px; background: var(--chip); }
@@ -244,9 +262,12 @@ body.v-detail .day { min-height: 80px; }
 
 </head>
 <body>
+<div class="phone" id="phone">
+<div class="screen" id="screen">
 <main class="wrap" id="app" aria-live="polite">
   <div class="loading" aria-label="불러오는 중"><div></div><div></div><div></div></div>
 </main>
+</div>
 
 <nav class="nav" aria-label="화면 전환">
   <div class="nav-in">
@@ -259,6 +280,7 @@ body.v-detail .day { min-height: 80px; }
   </div>
 </nav>
 <div id="sheet-root"></div>
+</div>
 
 <script>
 (() => {
@@ -330,7 +352,7 @@ body.v-detail .day { min-height: 80px; }
   }
   function periodsOn(dd) { return periods.filter(p => dd <= Number(p.startD) && dd >= Number(p.endD)); }
   function ptags(list) { return list.length ? h("span", { class: "ptags" }, list.map(p => h("span", { class: "ptag", style: `background:${pcolor(p.color)}` }, p.name || "기간"))) : null; }
-  function toast(msg) { const el = h("div", { class: "toast", role: "status" }, msg); document.body.append(el); setTimeout(() => el.remove(), 2200); }
+  function toast(msg) { const el = h("div", { class: "toast", role: "status" }, msg); document.getElementById("phone").append(el); setTimeout(() => el.remove(), 2200); }
   const P = c => `events/${cur}/${c}`;
   const canWrite = () => !!db && !readOnly && !noStore;
   function getFocus() { try { return localStorage.getItem(FOCUS_KEY); } catch (e) { return null; } }
@@ -399,11 +421,11 @@ body.v-detail .day { min-height: 80px; }
     const ev = curEvent();
     return h("div", { class: "evbar" },
       h("button", { type: "button", class: "ev-switch", onclick: openEventList, "aria-label": "행사 바꾸기" },
-        h("span", { class: "lbl" }, "행사"),
+        h("span", { class: "lbl" }, "행사 · 눌러서 바꾸기"),
         h("span", { class: "nm" }, ev ? ev.name || "이름 없는 행사" : "행사 선택"),
         events.length > 1 ? h("span", { class: "ev-count" }, events.length + "개") : null,
         svg('<path d="M6 9l6 6 6-6"/>', 2.4)),
-      canWrite() ? h("button", { type: "button", class: "btn small", onclick: () => openEventForm(null) }, "+ 새 행사") : null);
+      canWrite() ? h("button", { type: "button", class: "btn icon", onclick: () => openEventForm(null), "aria-label": "새 행사 만들기" }, svg('<path d="M12 5v14M5 12h14"/>', 2.6)) : null);
   }
   function topStrip() {
     const legend = sortedAreas().map(a => h("button", { type: "button", class: "area-chip", style: `--ac:${acVar(a.id)}`, onclick: () => goToArea(a.id) },
@@ -595,22 +617,22 @@ body.v-detail .day { min-height: 80px; }
   function render() {
     const app = document.getElementById("app");
     app.replaceChildren();
-    if (noStore) app.append(h("p", { class: "notice" }, "로그인한 상태에서 열면 팀원과 함께 저장되고 실시간으로 공유돼요. 지금은 볼 수만 있어요."));
-    else if (readOnly) app.append(h("p", { class: "notice" }, "보기 전용 권한이에요. 수정하려면 공유한 사람에게 ‘참여자’ 이상 권한을 요청하세요."));
-    else if (localMode && tab === "home") app.append(h("p", { class: "notice" }, "이 기기 브라우저에 저장돼요. 다른 기기·팀원과는 공유되지 않아요."));
-    if (stale && !eventsLoaded) app.append(h("p", { class: "notice" }, "데이터를 아직 불러오지 못했어요. 연결을 확인해 주세요."));
+    const notes = document.createDocumentFragment();
+    if (noStore) notes.append(h("p", { class: "notice" }, "로그인한 상태에서 열면 팀원과 함께 저장되고 실시간으로 공유돼요. 지금은 볼 수만 있어요."));
+    else if (readOnly) notes.append(h("p", { class: "notice" }, "보기 전용 권한이에요. 수정하려면 공유한 사람에게 ‘참여자’ 이상 권한을 요청하세요."));
+    else if (localMode && tab === "home") notes.append(h("p", { class: "notice" }, "이 기기 브라우저에 저장돼요. 다른 기기·팀원과는 공유되지 않아요."));
+    if (stale && !eventsLoaded) notes.append(h("p", { class: "notice" }, "데이터를 아직 불러오지 못했어요. 연결을 확인해 주세요."));
     document.querySelectorAll(".nav button").forEach(b => b.dataset.tab === tab ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
-    if (!eventsLoaded) { app.append(h("div", { class: "loading", "aria-label": "불러오는 중" }, h("div"), h("div"), h("div"))); return; }
-    if (!events.length || !curEvent()) { app.append(starter()); return; }
+    if (!eventsLoaded) { app.append(notes, h("div", { class: "loading", "aria-label": "불러오는 중" }, h("div"), h("div"), h("div"))); return; }
+    if (!events.length || !curEvent()) { app.append(notes, starter()); return; }
     document.body.classList.toggle("v-big", view === "big");
     document.body.classList.toggle("v-detail", view === "detail");
-    app.append(eventBar());
-    if (evLoaded) app.append(topStrip());
+    app.append(h("header", { class: "appbar" }, eventBar(), evLoaded ? topStrip() : null), notes);
     if (!evLoaded) { app.append(h("div", { class: "loading", "aria-label": "불러오는 중" }, h("div"), h("div"))); return; }
     const v = tab === "plan" ? viewPlan() : tab === "area" ? viewArea() : viewHome();
     app.append(...v.filter(Boolean));
   }
-  function setTab(t) { tab = t; render(); window.scrollTo(0, 0); }
+  function setTab(t) { tab = t; render(); document.getElementById("screen").scrollTop = 0; }
   document.querySelectorAll(".nav button").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
 
   // ---------- sheets ----------
